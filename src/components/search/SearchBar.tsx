@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, X, CornerDownLeft, Compass, Clock3, Briefcase, BookOpen } from 'lucide-react'
 import { searchItems, type SearchItem } from '@/lib/search'
+
+const SEARCH_MARKER = 'search-overlay'
 
 const typeIcon: Record<SearchItem['type'], typeof Compass> = {
   Destination: Compass,
@@ -31,25 +33,54 @@ export default function SearchBar() {
   }, [open])
 
   useEffect(() => {
-    setHighlight(0)
-  }, [q])
+    if (!open) return
+    window.history.pushState({ type: SEARCH_MARKER }, '')
+    const onPop = () => setOpen(false)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [open])
+
+  const closeSearch = useCallback(() => {
+    if (window.history.state?.type === SEARCH_MARKER) {
+      window.history.back()
+    }
+    setOpen(false)
+  }, [])
+
+  const navigate = useCallback(
+    (href: string) => {
+      if (window.history.state?.type === SEARCH_MARKER) {
+        let done = false
+        const nav = () => {
+          if (done) return
+          done = true
+          router.push(href)
+        }
+        window.addEventListener('popstate', nav, { once: true })
+        window.history.back()
+        window.setTimeout(nav, 500)
+      } else {
+        router.push(href)
+      }
+      setOpen(false)
+    },
+    [router]
+  )
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') closeSearch()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [closeSearch])
 
   const go = (href: string) => {
-    setOpen(false)
-    router.push(href)
+    navigate(href)
   }
 
   const submit = () => {
-    setOpen(false)
-    router.push(`/search?q=${encodeURIComponent(q)}`)
+    navigate(`/search?q=${encodeURIComponent(q)}`)
   }
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -88,7 +119,7 @@ export default function SearchBar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-xl"
-            onClick={() => setOpen(false)}
+            onClick={closeSearch}
           >
             <motion.div
               initial={{ opacity: 0, y: -16, scale: 0.98 }}
@@ -109,7 +140,7 @@ export default function SearchBar() {
                   className="w-full bg-transparent text-base text-white placeholder:text-slate-600 focus:outline-none"
                 />
                 <button
-                  onClick={() => setOpen(false)}
+                  onClick={closeSearch}
                   aria-label="Close search"
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 text-slate-400 transition-colors hover:text-white"
                 >
