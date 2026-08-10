@@ -115,7 +115,8 @@ export default function TravelScene({ particles = 600 }: { particles?: number })
               markers={heroMarkers}
               routes={heroRoutes}
               particles={particles}
-              reducedMotion={reducedMotion || lightMode}
+              reducedMotion={reducedMotion}
+              lightMode={lightMode}
             />
           </Suspense>
           <TravelParticles count={lightMode ? Math.min(particles, 220) : particles} />

@@ -13,6 +13,7 @@ interface TravelGlobeProps {
   routes: { from: [number, number]; to: [number, number] }[]
   particles?: number
   reducedMotion?: boolean
+  lightMode?: boolean
 }
 
 export const GLOBE_RADIUS = 1.55
@@ -66,7 +67,7 @@ function Atmosphere() {
   )
 }
 
-export default function TravelGlobe({ markers, routes, particles = 600, reducedMotion = false }: TravelGlobeProps) {
+export default function TravelGlobe({ markers, routes, particles = 600, reducedMotion = false, lightMode = false }: TravelGlobeProps) {
   const spinRef = useRef<THREE.Group>(null)
 
   useFrame((state, delta) => {
@@ -83,7 +84,7 @@ export default function TravelGlobe({ markers, routes, particles = 600, reducedM
           {markers.map((m) => (
             <GlobeMarker key={m.id} data={m} radius={GLOBE_RADIUS} />
           ))}
-          {!reducedMotion ? (
+          {!reducedMotion && !lightMode ? (
             <>
               {routes.map((r, i) => (
                 <TravelRoute
@@ -98,7 +99,7 @@ export default function TravelGlobe({ markers, routes, particles = 600, reducedM
         </group>
       </group>
       <Atmosphere />
-      {!reducedMotion ? <Airplane3D radius={GLOBE_RADIUS * 1.45} speed={0.09} /> : null}
+      {!reducedMotion && !lightMode ? <Airplane3D radius={GLOBE_RADIUS * 1.45} speed={0.09} /> : null}
     </group>
   )
 }
