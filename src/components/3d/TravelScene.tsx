@@ -35,7 +35,10 @@ function SoftGlow({ color = '#ff8c00' }: { color?: string }) {
 }
 
 function CameraRig() {
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+
   useFrame((state, delta) => {
+    if (isTouch) return
     const { camera, pointer } = state
     const targetX = pointer.x * 0.55
     const targetY = pointer.y * 0.35
