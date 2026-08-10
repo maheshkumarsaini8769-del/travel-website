@@ -94,9 +94,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className="hidden sm:block">
-              <SearchBar />
-            </div>
+            <SearchBar />
             <Link
               href="/plan-your-trip"
               className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_25px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_35px_rgba(249,115,22,0.45)] lg:inline-flex"
@@ -132,9 +130,6 @@ export default function Navbar() {
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               className="flex h-full flex-col items-center justify-center gap-2 px-8"
             >
-              <div className="mb-4 w-full max-w-xs">
-                <SearchBar />
-              </div>
               {mobileItems.map((item, i) => (
                 <motion.div
                   key={item.href}
