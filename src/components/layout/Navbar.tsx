@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sun, Menu, X, MessageCircle } from 'lucide-react'
+import { Menu, X, MessageCircle } from 'lucide-react'
+import Image from 'next/image'
 import SearchBar from '@/components/search/SearchBar'
 
 const navItems = [
@@ -64,9 +65,14 @@ export default function Navbar() {
       >
         <nav className="mx-auto flex h-16 sm:h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label="Sunsky Tourism home">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-600 shadow-[0_0_20px_rgba(249,115,22,0.45)] transition-transform duration-300 group-hover:rotate-12">
-              <Sun className="h-5 w-5 text-white" />
-            </span>
+            <Image
+              src="/images/logo.png"
+              alt="Sunsky Tourism logo"
+              width={1536}
+              height={1024}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+              priority
+            />
             <span className="text-lg font-extrabold tracking-wide text-white sm:text-xl">
               SUNSKY<span className="text-orange-400"> TOURISM</span>
             </span>

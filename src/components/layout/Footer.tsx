@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Sun, Phone, MessageCircle, Mail, MapPin, Navigation } from 'lucide-react'
+import { Phone, MessageCircle, Mail, MapPin, Navigation } from 'lucide-react'
+import Image from 'next/image'
 import { contact, mapsUrl, waLink } from '@/data/contact'
 
 export default function Footer() {
@@ -14,9 +15,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-600">
-                <Sun className="h-5 w-5 text-white" />
-              </span>
+              <Image
+              src="/images/logo.png"
+              alt="Sunsky Tourism logo"
+              width={1536}
+              height={1024}
+              className="h-10 w-10 shrink-0 rounded-full object-cover"
+            />
               <span className="text-xl font-extrabold tracking-wide text-white">
                 SUNSKY<span className="text-orange-400"> TOURISM</span>
               </span>
