@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next'
-import { packages } from '@/data/packages'
+import { getPackages } from '@/lib/data'
 import { guides } from '@/data/guides'
 import { destinations } from '@/data/destinations'
 import { hotels } from '@/data/hotels'
 
 const base = 'https://www.sunskytourism.in'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const packages = await getPackages()
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: 'weekly', priority: 1 },
     { url: `${base}/about`, changeFrequency: 'monthly', priority: 0.6 },

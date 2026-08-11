@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/sunsky-next/
 /out/
 
 # production

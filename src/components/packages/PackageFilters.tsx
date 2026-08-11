@@ -1,11 +1,12 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { packages } from '@/data/packages'
 import TiltCard from '@/components/ui/TiltCard'
 import StarRating from '@/components/ui/StarRating'
+import type { TravelPackage } from '@/data/packages'
 
 const themes = ['All', 'Heritage', 'Honeymoon', 'Family', 'Adventure', 'Beach', 'Luxury', 'Nature']
 const durations = [
@@ -28,12 +29,26 @@ export default function PackageFilters() {
   const [theme, setTheme] = useState('All')
   const [duration, setDuration] = useState('any')
   const [sort, setSort] = useState('popular')
+  const [list, setList] = useState<TravelPackage[]>(packages)
+
+  useEffect(() => {
+    let done = false
+    fetch('/api/packages')
+      .then((r) => r.json())
+      .then((data: TravelPackage[]) => {
+        if (!done && Array.isArray(data) && data.length) setList(data)
+      })
+      .catch(() => {})
+    return () => {
+      done = true
+    }
+  }, [])
 
   const filtered = useMemo(() => {
-    let list = [...packages]
+    let list2 = [...list]
     if (query.trim()) {
       const q = query.toLowerCase()
-      list = list.filter(
+      list2 = list2.filter(
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.region.toLowerCase().includes(q) ||
@@ -41,17 +56,17 @@ export default function PackageFilters() {
       )
     }
     if (theme !== 'All') {
-      list = list.filter((p) => p.theme.some((t) => t.toLowerCase() === theme.toLowerCase()))
+      list2 = list2.filter((p) => p.theme.some((t) => t.toLowerCase() === theme.toLowerCase()))
     }
-    if (duration === '4') list = list.filter((p) => durationDays(p.duration) <= 4)
-    if (duration === '56') list = list.filter((p) => durationDays(p.duration) >= 5 && durationDays(p.duration) <= 6)
-    if (duration === '7') list = list.filter((p) => durationDays(p.duration) >= 7)
-    if (sort === 'price-asc') list.sort((a, b) => a.pricePerPerson - b.pricePerPerson)
-    if (sort === 'price-desc') list.sort((a, b) => b.pricePerPerson - a.pricePerPerson)
-    if (sort === 'rating') list.sort((a, b) => b.rating - a.rating)
-    if (sort === 'popular') list.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
-    return list
-  }, [query, theme, duration, sort])
+    if (duration === '4') list2 = list2.filter((p) => durationDays(p.duration) <= 4)
+    if (duration === '56') list2 = list2.filter((p) => durationDays(p.duration) >= 5 && durationDays(p.duration) <= 6)
+    if (duration === '7') list2 = list2.filter((p) => durationDays(p.duration) >= 7)
+    if (sort === 'price-asc') list2.sort((a, b) => a.pricePerPerson - b.pricePerPerson)
+    if (sort === 'price-desc') list2.sort((a, b) => b.pricePerPerson - a.pricePerPerson)
+    if (sort === 'rating') list2.sort((a, b) => b.rating - a.rating)
+    if (sort === 'popular') list2.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+    return list2
+  }, [query, theme, duration, sort, list])
 
   return (
     <div>

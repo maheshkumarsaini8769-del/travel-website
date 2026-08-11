@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { searchItems, groupByType, typeLabel, type SearchItem } from '@/lib/search'
+import { getPackages } from '@/lib/data'
 import { whatsappDefault } from '@/lib/helpers'
 import { Search, ArrowUpRight, MessageCircle, Compass, Clock3, Briefcase, BookOpen } from 'lucide-react'
 
@@ -21,8 +22,9 @@ const typeIcon: Record<SearchItem['type'], typeof Compass> = {
   Guide: BookOpen,
 }
 
-function SearchResults({ query }: { query: string }) {
-  const items = searchItems(query)
+async function SearchResults({ query }: { query: string }) {
+  const pkgs = await getPackages()
+  const items = searchItems(query, pkgs)
   const groups = groupByType(items)
 
   if (query.trim() === '') {

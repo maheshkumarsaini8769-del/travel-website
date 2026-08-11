@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, X, CornerDownLeft, Compass, Clock3, Briefcase, BookOpen } from 'lucide-react'
 import { searchItems, type SearchItem } from '@/lib/search'
+import { packages } from '@/data/packages'
+import type { TravelPackage } from '@/data/packages'
 
 const SEARCH_MARKER = 'search-overlay'
 
@@ -19,10 +21,24 @@ export default function SearchBar() {
   const [open, setOpen] = useState(false)
   const [q, setQ] = useState('')
   const [highlight, setHighlight] = useState(0)
+  const [pkgs, setPkgs] = useState<TravelPackage[]>(packages)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
-  const results = searchItems(q)
+  useEffect(() => {
+    let done = false
+    fetch('/api/packages')
+      .then((r) => r.json())
+      .then((data: TravelPackage[]) => {
+        if (!done && Array.isArray(data) && data.length) setPkgs(data)
+      })
+      .catch(() => {})
+    return () => {
+      done = true
+    }
+  }, [])
+
+  const results = searchItems(q, pkgs)
 
   useEffect(() => {
     if (open) {

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { packages, packageById } from '@/data/packages'
+import { getPackageById, getPackages } from '@/lib/data'
 import { destinationExtras } from '@/data/destinations'
 import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
@@ -31,6 +31,8 @@ interface Props {
   params: { id: string }
 }
 
+export const dynamic = 'force-dynamic'
+
 const extraKeyByRegion: Record<string, string> = {
   Rajasthan: 'jaipur',
   Goa: 'goa',
@@ -43,12 +45,8 @@ const extraKeyByRegion: Record<string, string> = {
 const reachIcons = [Plane, TrainFront, CarFront] as const
 const reachLabels = ['By Air', 'By Rail', 'By Road']
 
-export function generateStaticParams() {
-  return packages.map((p) => ({ id: p.id }))
-}
-
-export function generateMetadata({ params }: Props): Metadata {
-  const pkg = packageById(params.id)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const pkg = await getPackageById(params.id)
   if (!pkg) return { title: 'Package Not Found | Sunsky Tourism' }
   return {
     title: `${pkg.name} | Sunsky Tourism`,
@@ -58,14 +56,15 @@ export function generateMetadata({ params }: Props): Metadata {
   }
 }
 
-export default function PackageDetailPage({ params }: Props) {
-  const pkg = packageById(params.id)
+export default async function PackageDetailPage({ params }: Props) {
+  const pkg = await getPackageById(params.id)
   if (!pkg) notFound()
 
   const extra = destinationExtras[extraKeyByRegion[pkg.region] ?? 'international']
   const reach = extra ? [extra.howToReach.air, extra.howToReach.rail, extra.howToReach.road] : []
   const savings = Math.round(((pkg.originalPrice - pkg.pricePerPerson) / pkg.originalPrice) * 100)
-  const related = packages.filter((p) => p.id !== pkg.id).slice(0, 3)
+  const all = await getPackages()
+  const related = all.filter((p) => p.id !== pkg.id).slice(0, 3)
 
   return (
     <>

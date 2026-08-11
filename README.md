@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sunsky Tourism — Travel Website
+
+Next.js 14 travel website for Sunsky Tourism (Sikar) with a MongoDB-backed admin panel.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Create `.env.local` (never commit it):
 
-## Learn More
+```
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/sunsky
+ADMIN_PASSWORD=<change-this>
+ADMIN_SECRET=<long-random-string>
+```
 
-To learn more about Next.js, take a look at the following resources:
+- `MONGODB_URI` — Atlas connection string. Make sure your IP is whitelisted in Atlas → Network Access, otherwise TLS handshakes are rejected (`tlsv1 alert internal error`).
+- `ADMIN_PASSWORD` — password for the admin panel at `/admin`.
+- `ADMIN_SECRET` — used to sign the admin session cookie.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Admin panel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Visit `/admin` (login with `ADMIN_PASSWORD`). You can:
 
-## Deploy on Vercel
+- **Packages** — list, create, edit and delete travel packages. "Seed from defaults" copies the static packages from `src/data/packages.ts` into MongoDB (upsert, keeps your edits).
+- **Images** — upload images into MongoDB and copy their `/api/images/...` URLs into a package's cover/gallery fields.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Packages are served **database-first with static fallback**: every public page (home, `/packages`, search, booking, sitemap) loads `/api/packages`, which merges MongoDB documents over the static defaults. If MongoDB is unreachable, the site keeps working with the static data.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## API
+
+| Method | Route | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/auth/login` | — | Login, sets `admin_session` cookie |
+| POST | `/api/auth/logout` | cookie | Logout |
+| GET | `/api/admin/me` | cookie | Session check |
+| POST | `/api/admin/seed` | cookie | Upsert static packages into MongoDB |
+| GET | `/api/packages` | — | Public merged package list |
+| POST | `/api/packages` | cookie | Create package |
+| GET/PUT/DELETE | `/api/packages/[id]` | cookie (GET public) | Read / update / delete |
+| GET/POST | `/api/images` | cookie (GET/POST) | List / upload image |
+| GET/DELETE | `/api/images/[id]` | cookie (DELETE) | Serve / delete image |
+
+## Notes
+
+- `src/data/packages.ts` remains the source of truth until the DB is seeded; after that, edits win.
+- Deleting a package also deletes its stored images.

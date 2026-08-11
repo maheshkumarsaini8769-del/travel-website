@@ -8,10 +8,27 @@ import SpotlightCard from '@/components/ui/SpotlightCard'
 import TiltCard from '@/components/ui/TiltCard'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { packages } from '@/data/packages'
+import { useEffect, useState } from 'react'
+import type { TravelPackage } from '@/data/packages'
 
 export default function PackagesSection() {
-  const featured = packages.find((p) => p.featured)!
-  const rest = packages.filter((p) => !p.featured)
+  const [list, setList] = useState<TravelPackage[]>(packages)
+
+  useEffect(() => {
+    let done = false
+    fetch('/api/packages')
+      .then((r) => r.json())
+      .then((data: TravelPackage[]) => {
+        if (!done && Array.isArray(data) && data.length) setList(data)
+      })
+      .catch(() => {})
+    return () => {
+      done = true
+    }
+  }, [])
+
+  const featured = list.find((p) => p.featured) ?? list[0]!
+  const rest = list.filter((p) => !p.featured)
 
   return (
     <section className="relative py-24 sm:py-32">

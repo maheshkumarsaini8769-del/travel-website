@@ -126,7 +126,7 @@ export const tours: Tour[] = [
     tourType: 'Private or Group',
     language: 'English, Hindi',
     pickup: 'Hotel pickup & drop included',
-    groupSize: '2 – 20 travellers',
+    groupSize: '2 - 20 travellers',
     priceLabel: 'Price on request',
     availability: 'Availability on request',
     cancellation: 'Free cancellation up to 24 hours before start',

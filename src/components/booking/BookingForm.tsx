@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Send } from 'lucide-react'
 import { waLink } from '@/data/contact'
 import { packages } from '@/data/packages'
+import type { TravelPackage } from '@/data/packages'
 
 const inputCls =
   'w-full rounded-full border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-400/60'
@@ -13,6 +14,20 @@ const budgets = ['Under ₹10,000', '₹10,000 – ₹20,000', '₹20,000 – �
 
 export default function BookingForm() {
   const [sent, setSent] = useState(false)
+  const [pkgs, setPkgs] = useState<TravelPackage[]>(packages)
+
+  useEffect(() => {
+    let done = false
+    fetch('/api/packages')
+      .then((r) => r.json())
+      .then((data: TravelPackage[]) => {
+        if (!done && Array.isArray(data) && data.length) setPkgs(data)
+      })
+      .catch(() => {})
+    return () => {
+      done = true
+    }
+  }, [])
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -80,7 +95,7 @@ export default function BookingForm() {
           </label>
           <select id="bk-pkg" name="package" className={inputCls}>
             <option value="">No specific package</option>
-            {packages.map((p) => (
+            {pkgs.map((p) => (
               <option key={p.id} value={p.name} className="bg-[#0d0d0f]">
                 {p.name}
               </option>
