@@ -1,13 +1,10 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import Navbar from '@/components/layout/Navbar'
-import Footer from '@/components/layout/Footer'
-import FloatingButtons from '@/components/layout/FloatingButtons'
+import SiteChrome from '@/components/layout/SiteChrome'
 import MotionProvider from '@/components/layout/MotionProvider'
 import ScrollProgress from '@/components/ui/ScrollProgress'
 import PageTransition from '@/components/layout/PageTransition'
-import BackToTop from '@/components/ui/BackToTop'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -50,11 +47,9 @@ export default function RootLayout({
       <body className={`${inter.className} bg-[#070707] text-slate-100 antialiased`}>
         <MotionProvider>
           <ScrollProgress />
-          <Navbar />
-          <PageTransition>{children}</PageTransition>
-          <Footer />
-          <FloatingButtons />
-          <BackToTop />
+          <SiteChrome>
+            <PageTransition>{children}</PageTransition>
+          </SiteChrome>
         </MotionProvider>
       </body>
     </html>
