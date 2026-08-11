@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, LogOut, Package, Sun } from 'lucide-react'
+import { ImageIcon, LayoutDashboard, LogOut, Package } from 'lucide-react'
 import Image from 'next/image'
 
 const OPEN_ROUTES = ['/admin/login']
@@ -54,14 +54,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#0b0b0c]/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/admin/packages" className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-600">
-              <Sun className="h-5 w-5 text-white" />
-            </span>
+            <Image
+              src="/images/logo.png"
+              alt="Sunsky Tourism logo"
+              width={1536}
+              height={1024}
+              className="h-9 w-9 shrink-0 rounded-full object-cover"
+            />
             <span className="text-base font-extrabold tracking-wide">
-              SUNSKY <span className="text-orange-400">ADMIN</span>
-            </span>
-            <span className="ml-2 hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400 sm:inline">
-              Panel
+              SUNSKY <span className="text-orange-400">TOURISM</span>
+              <span className="ml-1 rounded-full border border-orange-400/30 bg-orange-500/10 px-2 py-0.5 align-middle text-[9px] font-bold uppercase tracking-widest text-orange-300">
+                Admin
+              </span>
             </span>
           </Link>
           <div className="flex items-center gap-2">
@@ -108,7 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
-            <Image src="/images/logo.png" alt="" width={16} height={12} className="h-3.5 w-4 object-cover" />
+            <ImageIcon className="h-4 w-4" />
             Images
           </Link>
         </div>
