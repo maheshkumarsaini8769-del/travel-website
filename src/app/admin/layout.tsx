@@ -12,20 +12,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const router = useRouter()
   const [state, setState] = useState<'loading' | 'authed' | 'guest'>('loading')
+  const [checked, setChecked] = useState<string | null>(null)
 
   useEffect(() => {
+    let done = false
+    setChecked(null)
     fetch('/api/admin/me')
-      .then((r) => setState(r.ok ? 'authed' : 'guest'))
-      .catch(() => setState('guest'))
-  }, [])
+      .then((r) => {
+        if (!done) {
+          setState(r.ok ? 'authed' : 'guest')
+          setChecked(pathname)
+        }
+      })
+      .catch(() => {
+        if (!done) {
+          setState('guest')
+          setChecked(pathname)
+        }
+      })
+    return () => {
+      done = true
+    }
+  }, [pathname])
 
   useEffect(() => {
-    if (!pathname) return
+    if (!pathname || checked !== pathname) return
     if (state === 'guest' && !OPEN_ROUTES.includes(pathname)) router.replace('/admin/login')
     if (state === 'authed' && pathname === '/admin/login') router.replace('/admin/packages')
-  }, [state, pathname, router])
+  }, [state, pathname, checked, router])
 
-  if (state === 'loading' || (state === 'guest' && pathname !== null && !OPEN_ROUTES.includes(pathname))) {
+  if (checked !== pathname || (state === 'guest' && pathname !== null && !OPEN_ROUTES.includes(pathname))) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#070707]">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-orange-500/30 border-t-orange-500" />
