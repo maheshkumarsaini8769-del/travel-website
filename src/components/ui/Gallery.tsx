@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Reveal } from '@/components/ui/TextReveal'
@@ -30,10 +31,12 @@ export default function Gallery({ images, alt }: GalleryProps) {
               }`}
               aria-label={`View ${alt} photo ${i + 1}`}
             >
-              <img
+              <Image
                 src={src}
                 alt={`${alt} photo ${i + 1}`}
-                className="h-full min-h-36 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                fill
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
                 loading="lazy" decoding="async"
               />
               <span className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/25" aria-hidden="true" />
@@ -73,16 +76,21 @@ export default function Gallery({ images, alt }: GalleryProps) {
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <motion.img
+            <motion.div
               key={index}
-              src={images[index]}
-              alt={`${alt} photo ${index + 1}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.35 }}
-              className="max-h-[85vh] max-w-[92vw] rounded-2xl object-contain"
               onClick={(e) => e.stopPropagation()}
-            />
+            >
+              <Image
+                src={images[index]}
+                alt={`${alt} photo ${index + 1}`}
+                width={1600}
+                height={1200}
+                className="max-h-[85vh] max-w-[92vw] rounded-2xl object-contain"
+              />
+            </motion.div>
             <button
               type="button"
               onClick={(e) => {

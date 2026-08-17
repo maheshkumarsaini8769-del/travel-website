@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import SectionHeading from '@/components/ui/SectionHeading'
 import CountUp from '@/components/ui/CountUp'
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   title: 'About Us | Sunsky Tourism',
   description:
     'Learn about Sunsky Tourism, Sikar\u2019s trusted travel agency — personalized planning, honest pricing and support that stays with you on the road.',
+  alternates: { canonical: '/about' },
 }
 
 const values = [
@@ -135,7 +137,7 @@ export default function AboutPage() {
       <section className="relative pb-24 sm:pb-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-[32px] border border-white/10">
-            <img loading="lazy" decoding="async" src={aboutImages.experience} alt="" className="h-[320px] w-full object-cover sm:h-[400px]" aria-hidden="true" />
+            <Image loading="lazy" decoding="async" src={aboutImages.experience} alt="" fill sizes="100vw" className="h-[320px] w-full object-cover sm:h-[400px]" aria-hidden="true" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" aria-hidden="true" />
             <div className="absolute inset-x-0 bottom-0 p-8 sm:p-12">
               <p className="max-w-2xl text-xl font-semibold leading-snug text-white sm:text-2xl">

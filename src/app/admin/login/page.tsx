@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, ArrowRight } from 'lucide-react'
+import { Lock, ArrowRight, Eye, EyeOff } from 'lucide-react'
 
 export default function AdminLogin() {
+  const [username, setUsername] = useState('admin')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const router = useRouter()
@@ -18,7 +20,7 @@ export default function AdminLogin() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       })
       if (res.ok) {
         router.replace('/admin/packages')
@@ -43,15 +45,32 @@ export default function AdminLogin() {
           <Lock className="h-5 w-5 text-white" />
         </span>
         <h1 className="mt-5 text-xl font-bold text-white">Admin Login</h1>
-        <p className="mt-1 text-sm text-slate-400">Enter the admin password to manage packages.</p>
+        <p className="mt-1 text-sm text-slate-400">Sign in to manage the website.</p>
         <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Admin password"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
           autoFocus
           className="mt-6 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-400/60"
         />
+        <div className="relative mt-6">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Admin password"
+            className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 pr-11 text-sm text-white outline-none transition-colors focus:border-orange-400/60"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            title={showPassword ? 'Hide password' : 'Show password'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-white"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
         {error ? <p className="mt-3 text-sm font-medium text-rose-400">{error}</p> : null}
         <button
           type="submit"

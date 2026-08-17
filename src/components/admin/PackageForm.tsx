@@ -9,7 +9,7 @@ import Image from 'next/image'
 const CATEGORIES: PackageCategory[] = ['India', 'Rajasthan', 'Beach', 'Mountain', 'International']
 const THEMES: PackageTheme[] = ['Heritage', 'Honeymoon', 'Family', 'Adventure', 'Beach', 'Luxury', 'Nature']
 
-const empty: Omit<TravelPackage, 'id'> & { id: string } = {
+const empty: FormState = {
   id: '',
   name: '',
   duration: '',
@@ -40,15 +40,28 @@ const empty: Omit<TravelPackage, 'id'> & { id: string } = {
   hotelCategories: '',
   transportation: '',
   featured: false,
+  status: 'published',
+  availableDates: [],
+  maxTravellers: 0,
+  seoTitle: '',
+  seoDescription: '',
 }
 
-type FormState = typeof empty
+interface FormExtras {
+  status: 'draft' | 'published' | 'archived'
+  availableDates: string[]
+  maxTravellers: number
+  seoTitle: string
+  seoDescription: string
+}
+
+type FormState = Omit<TravelPackage, 'id'> & { id: string } & FormExtras
 
 function toForm(p?: TravelPackage | null): FormState {
   return p ? { ...empty, ...JSON.parse(JSON.stringify(p)) } : empty
 }
 
-function fromForm(f: FormState): TravelPackage {
+function fromForm(f: FormState): FormState {
   return {
     ...f,
     pricePerPerson: Number(f.pricePerPerson) || 0,
@@ -56,6 +69,8 @@ function fromForm(f: FormState): TravelPackage {
     rating: Number(f.rating) || 0,
     reviewCount: Number(f.reviewCount) || 0,
     featured: Boolean(f.featured),
+    status: f.status ?? 'published',
+    maxTravellers: Number(f.maxTravellers) || 0,
     itinerary: f.itinerary
       .filter((d) => d.title || d.text)
       .map((d, i) => ({ day: Number(d.day) || i + 1, title: d.title, text: d.text })),
@@ -290,7 +305,18 @@ export default function PackageForm({ initial, editableId }: { initial?: TravelP
               </Field>
             </div>
           </div>
-          <Field label="Featured on site" className="sm:col-span-2">
+          <Field label="Status" className="sm:col-span-1">
+            <select
+              value={form.status}
+              onChange={(e) => update('status', e.target.value as 'draft' | 'published' | 'archived')}
+              className={inputCls}
+            >
+              <option value="published">Published</option>
+              <option value="draft">Draft</option>
+              <option value="archived">Archived</option>
+            </select>
+          </Field>
+          <Field label="Featured on site" className="sm:col-span-1">
             <label className="inline-flex cursor-pointer items-center gap-3">
               <button
                 type="button"

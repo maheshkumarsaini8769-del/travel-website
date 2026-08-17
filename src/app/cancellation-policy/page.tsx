@@ -5,6 +5,7 @@ import { contact } from '@/data/contact'
 export const metadata: Metadata = {
   title: 'Cancellation Policy | Sunsky Tourism',
   description: `How cancellations and changes work for ${contact.brand} travel bookings.`,
+  alternates: { canonical: '/cancellation-policy' },
 }
 
 export default function CancellationPolicyPage() {

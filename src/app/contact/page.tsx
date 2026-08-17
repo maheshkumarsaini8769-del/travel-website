@@ -46,6 +46,7 @@ export const metadata: Metadata = {
   title: 'Contact Us | Sunsky Tourism',
   description:
     'Contact Sunsky Tourism, Sikar — call 94620 18302, WhatsApp, email sunskytourism.in@gmail.com or visit W.No. 45, Industrial Area, Sikar.',
+  alternates: { canonical: '/contact' },
 }
 
 const cards = [

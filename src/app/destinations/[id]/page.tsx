@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { destinations, destinationById } from '@/data/destinations'
 import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
@@ -21,8 +22,9 @@ export function generateMetadata({ params }: Props): Metadata {
   const dest = destinationById(params.id)
   if (!dest) return { title: 'Destination Not Found | Sunsky Tourism' }
   return {
-    title: `${dest.name} | Sunsky Tourism`,
+title: `${dest.name} | Sunsky Tourism`,
     description: `${dest.tagline} — ${dest.description} Plan your trip to ${dest.name} with Sunsky Tourism.`,
+    alternates: { canonical: `/destinations/${dest.id}` },
   }
 }
 
@@ -34,7 +36,7 @@ export default function DestinationDetailPage({ params }: Props) {
     <>
       <section className="relative flex min-h-[55vh] items-end overflow-hidden pt-24">
         <div className="absolute inset-0">
-          <img src={dest.image} alt={dest.name} fetchPriority="high" decoding="async" className="h-full w-full object-cover" />
+          <Image src={dest.image} alt={dest.name} fill sizes="100vw" priority className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07070a] via-black/50 to-black/30" aria-hidden="true" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(249,115,22,0.12),transparent_55%)]" aria-hidden="true" />
         </div>
@@ -181,11 +183,13 @@ export default function DestinationDetailPage({ params }: Props) {
                     className="group block overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30"
                   >
                     <div className="relative h-48 overflow-hidden">
-                      <img
+<Image
                         loading="lazy" decoding="async"
                         src={d.image}
                         alt={d.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" aria-hidden="true" />
                     </div>

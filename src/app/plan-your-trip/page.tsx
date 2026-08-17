@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'Plan Your Trip | Sunsky Tourism',
   description:
     'Tell us your destination, dates and budget — our travel experts in Sikar craft a personalised itinerary and confirm it with you on WhatsApp. Free consultation.',
+  alternates: { canonical: '/plan-your-trip' },
 }
 
 const steps = [

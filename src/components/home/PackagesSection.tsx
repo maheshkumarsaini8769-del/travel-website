@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, Clock } from 'lucide-react'
 import SectionHeading from '@/components/ui/SectionHeading'
@@ -49,11 +50,13 @@ export default function PackagesSection() {
                     className="absolute inset-0 z-10"
                     aria-label={`View ${featured.name}`}
                   />
-                  <img
+                  <Image
                     src={featured.image}
                     alt={featured.name}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                     loading="lazy" decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover opacity-70 transition-all duration-700 group-hover:opacity-90"
+                    className="object-cover opacity-70 transition-all duration-700 group-hover:opacity-90"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/35 to-transparent" />
                   <span className="absolute left-6 top-6 z-10 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.25em] text-white shadow-[0_0_25px_rgba(249,115,22,0.4)]">
@@ -88,11 +91,13 @@ export default function PackagesSection() {
               <TiltCard className="h-full" maxTilt={6}>
                 <SpotlightCard className="img-zoom group relative flex h-full min-h-[250px] overflow-hidden rounded-3xl border border-white/10">
                   <Link href={`/packages/${pkg.id}`} className="absolute inset-0 z-10" aria-label={`View ${pkg.name}`} />
-                  <img
+                  <Image
                     src={pkg.image}
                     alt={pkg.name}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
                     loading="lazy" decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover opacity-75 transition-all duration-700 group-hover:opacity-90 group-hover:scale-105"
+                    className="object-cover opacity-75 transition-all duration-700 group-hover:opacity-90 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
                   <div className="relative z-10 mt-auto flex w-full items-end justify-between gap-4 p-7">

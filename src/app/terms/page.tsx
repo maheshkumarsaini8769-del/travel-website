@@ -5,6 +5,7 @@ import { contact } from '@/data/contact'
 export const metadata: Metadata = {
   title: 'Terms & Conditions | Sunsky Tourism',
   description: `Terms of service for ${contact.brand} — bookings, payments, changes and travel documents.`,
+  alternates: { canonical: '/terms' },
 }
 
 export default function TermsPage() {

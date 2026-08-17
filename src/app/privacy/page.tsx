@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy | Sunsky Tourism',
   description:
     'How Sunsky Tourism collects, uses and protects your personal information when you plan or book travel with us.',
+  alternates: { canonical: '/privacy' },
 }
 
 const sections = [

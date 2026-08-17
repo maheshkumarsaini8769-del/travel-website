@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, X, CornerDownLeft, Compass, Clock3, Briefcase, BookOpen } from 'lucide-react'
 import { searchItems, type SearchItem } from '@/lib/search'
@@ -187,9 +188,11 @@ export default function SearchBar() {
                               highlight === i ? 'bg-orange-500/10' : ''
                             }`}
                           >
-                            <img
+                            <Image
                               src={item.image}
                               alt=""
+                              width={96}
+                              height={96}
                               loading="lazy" decoding="async"
                               className="h-12 w-12 shrink-0 rounded-xl object-cover"
                             />

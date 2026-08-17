@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import TiltCard from '@/components/ui/TiltCard'
 import { destinations, type DestinationCategory } from '@/data/destinations'
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   title: 'Destinations | Sunsky Tourism',
   description:
     'Explore curated destinations across Rajasthan, India and the world — Jaipur, Udaipur, Jaisalmer, Goa, Kashmir, Dubai and more.',
+  alternates: { canonical: '/destinations' },
 }
 
 const categoryOrder: DestinationCategory[] = ['Rajasthan', 'India', 'International']
@@ -47,11 +49,13 @@ export default function DestinationsPage() {
                     className="group block overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30"
                   >
                     <div className="relative h-64 overflow-hidden">
-                      <img
+                      <Image
                         loading="lazy" decoding="async"
                         src={d.image}
                         alt={d.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" aria-hidden="true" />
                       <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/50 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-md">

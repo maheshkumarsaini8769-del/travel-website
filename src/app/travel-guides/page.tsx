@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { guides } from '@/data/guides'
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   title: 'Travel Guides | Sunsky Tourism',
   description:
     'Honest, practical travel guides — best time to visit, itinerary ideas, food guides and family travel tips from the team behind Sunsky Tourism, Sikar.',
+  alternates: { canonical: '/travel-guides' },
 }
 
 export default function TravelGuidesPage() {
@@ -33,11 +35,13 @@ export default function TravelGuidesPage() {
                   className="group block overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30"
                 >
                   <div className="relative h-52 overflow-hidden">
-                    <img
+                    <Image
                       loading="lazy" decoding="async"
                       src={g.image}
                       alt={g.title}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" aria-hidden="true" />
                     <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/50 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-md">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import Image from 'next/image'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
 interface ParallaxImageProps {
@@ -18,13 +19,17 @@ export default function ParallaxImage({ src, alt, className = '', speed = 12, ro
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${rounded} ${className}`}>
-      <motion.img
-        src={src}
-        alt={alt}
-        loading="lazy" decoding="async"
-        style={{ y, scale: 1.12 }}
-        className="w-full h-full object-cover will-change-transform"
-      />
+      <motion.div style={{ y, scale: 1.12 }} className="absolute inset-0 will-change-transform">
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          loading="lazy"
+          decoding="async"
+          className="object-cover"
+        />
+      </motion.div>
     </div>
   )
 }

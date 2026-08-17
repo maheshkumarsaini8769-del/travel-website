@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { Suspense } from 'react'
 import { searchItems, groupByType, typeLabel, type SearchItem } from '@/lib/search'
 import { getPackages } from '@/lib/data'
@@ -13,6 +14,7 @@ interface Props {
 export const metadata: Metadata = {
   title: 'Search | Sunsky Tourism',
   description: 'Search destinations, tours, holiday packages and travel guides on Sunsky Tourism.',
+  alternates: { canonical: '/search' },
 }
 
 const typeIcon: Record<SearchItem['type'], typeof Compass> = {
@@ -85,9 +87,11 @@ async function SearchResults({ query }: { query: string }) {
                 href={item.href}
                 className="group flex items-center gap-4 rounded-[20px] border border-white/10 bg-white/[0.03] p-4 transition-colors duration-300 hover:border-orange-400/30"
               >
-                <img
+                <Image
                   src={item.image}
                   alt=""
+                  width={128}
+                  height={128}
                   loading="lazy" decoding="async"
                   className="h-16 w-16 shrink-0 rounded-xl object-cover"
                 />

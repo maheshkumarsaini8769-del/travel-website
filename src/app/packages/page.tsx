@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: 'Travel Packages | Sunsky Tourism',
   description:
     'Ready-made and customisable tour packages — Rajasthan heritage, Goa holidays, Kashmir escapes, Dubai experiences and Himachal adventures. Clear per-person pricing and no hidden charges.',
+  alternates: { canonical: '/packages' },
 }
 
 export default function PackagesPage() {

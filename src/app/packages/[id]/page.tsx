@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { getPackageById, getPackages } from '@/lib/data'
 import { destinationExtras } from '@/data/destinations'
 import Gallery from '@/components/ui/Gallery'
@@ -53,6 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: `${pkg.name} — ${pkg.tagline}. ${pkg.duration} tour covering ${pkg.places.join(
       ', '
     )} from ₹${pkg.pricePerPerson.toLocaleString('en-IN')} per person. Book with Sunsky Tourism, Sikar.`,
+    alternates: { canonical: `/packages/${pkg.id}` },
   }
 }
 
@@ -70,7 +72,7 @@ export default async function PackageDetailPage({ params }: Props) {
     <>
       <section className="relative flex min-h-[55vh] items-end overflow-hidden pt-24">
         <div className="absolute inset-0">
-          <img src={pkg.image} alt={pkg.name} fetchPriority="high" decoding="async" className="h-full w-full object-cover" />
+          <Image src={pkg.image} alt={pkg.name} fill sizes="100vw" priority className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07070a] via-black/50 to-black/30" aria-hidden="true" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(249,115,22,0.12),transparent_55%)]" aria-hidden="true" />
         </div>
@@ -338,11 +340,13 @@ export default async function PackageDetailPage({ params }: Props) {
                   className="group block overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30"
                 >
                   <div className="relative h-48 overflow-hidden">
-                    <img
+                    <Image
                       loading="lazy" decoding="async"
                       src={p.image}
                       alt={p.name}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" aria-hidden="true" />
                     <span className="absolute bottom-4 left-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">

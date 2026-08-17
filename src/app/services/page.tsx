@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import SectionHeading from '@/components/ui/SectionHeading'
 import TiltCard from '@/components/ui/TiltCard'
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
   title: 'Services | Sunsky Tourism',
   description:
     'Flights, hotels, tour packages, holiday plans, visa assistance and transportation — every travel service under one roof in Sikar.',
+  alternates: { canonical: '/services' },
 }
 
 export default function ServicesPage() {
@@ -35,11 +37,13 @@ export default function ServicesPage() {
                   <TiltCard className={i % 3 === 1 ? 'lg:mt-10' : ''}>
                     <article className="group h-full overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30">
                       <div className="relative h-52 overflow-hidden">
-                        <img
+                        <Image
                           loading="lazy" decoding="async"
                           src={s.image}
                           alt={s.name}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" aria-hidden="true" />
                         <span className="absolute bottom-4 left-5 flex h-11 w-11 items-center justify-center rounded-xl border border-orange-400/40 bg-black/50 text-orange-400 backdrop-blur-md">

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowUpRight, Compass } from 'lucide-react'
 import SectionHeading from '@/components/ui/SectionHeading'
@@ -40,11 +41,13 @@ export default function DestinationsShowcase() {
                       className="absolute inset-0 z-10"
                       aria-label={`Explore ${d.name}`}
                     />
-                    <img
+                    <Image
                       src={d.image}
                       alt={d.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       loading="lazy" decoding="async"
-                      className="h-full w-full object-cover"
+                      className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 z-20 p-6">

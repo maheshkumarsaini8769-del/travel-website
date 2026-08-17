@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: 'Booking Enquiry | Sunsky Tourism',
   description:
     'Plan your trip with Sunsky Tourism — share your destination, dates, travellers and budget, and get a personalised itinerary and quote on WhatsApp within hours.',
+  alternates: { canonical: '/booking' },
 }
 
 const steps = [

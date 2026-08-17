@@ -28,8 +28,8 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
   }
 }
 
-export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
-  const denied = requireAdmin()
+export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }): Promise<Response> {
+  const denied = await requireAdmin()
   if (denied) return denied
 
   try {

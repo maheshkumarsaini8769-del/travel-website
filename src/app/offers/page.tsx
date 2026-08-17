@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import TrustBadges from '@/components/ui/TrustBadges'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
   title: 'Offers & Deals | Sunsky Tourism',
   description:
     'Current Sunsky Tourism offers — festive season sale, honeymoon specials, group deals, Dubai flash sales and loyalty discounts. Limited periods, real savings.',
+  alternates: { canonical: '/offers' },
 }
 
 export default function OffersPage() {
@@ -37,11 +39,13 @@ export default function OffersPage() {
                   }`}
                 >
                   <div className="relative h-44 overflow-hidden">
-                    <img
+                    <Image
                       loading="lazy" decoding="async"
                       src={offer.image}
                       alt={offer.title}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" aria-hidden="true" />
                     <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-3.5 py-1.5 text-sm font-bold text-white shadow-lg">

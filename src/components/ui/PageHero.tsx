@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 
 interface PageHeroProps {
@@ -13,17 +14,22 @@ export default function PageHero({ eyebrow, title, description, image }: PageHer
   return (
     <section className="relative flex min-h-[52vh] items-end overflow-hidden pt-24 sm:min-h-[58vh]">
       <div className="absolute inset-0">
-        <motion.img
-          src={image}
-          alt=""
-          aria-hidden="true"
-          fetchPriority="high"
-          decoding="async"
+        <motion.div
           initial={{ scale: 1.15 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
-          className="h-full w-full object-cover"
-        />
+          className="absolute inset-0"
+        >
+          <Image
+            src={image}
+            alt=""
+            fill
+            sizes="100vw"
+            priority
+            decoding="async"
+            className="object-cover"
+          />
+        </motion.div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#07070a] via-black/55 to-black/40" aria-hidden="true" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(249,115,22,0.12),transparent_55%)]" aria-hidden="true" />
       </div>

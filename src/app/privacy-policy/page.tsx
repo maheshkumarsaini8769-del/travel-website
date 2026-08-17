@@ -5,6 +5,7 @@ import { contact } from '@/data/contact'
 export const metadata: Metadata = {
   title: 'Privacy Policy | Sunsky Tourism',
   description: `How ${contact.brand} collects, uses and protects your personal information.`,
+  alternates: { canonical: '/privacy-policy' },
 }
 
 export default function PrivacyPolicyPage() {

@@ -3,8 +3,8 @@ import { requireAdmin } from '@/lib/auth'
 import { imagesCollection } from '@/lib/db'
 import { ObjectId } from 'mongodb'
 
-export async function GET() {
-  const denied = requireAdmin()
+export async function GET(): Promise<Response> {
+  const denied = await requireAdmin()
   if (denied) return denied
 
   try {
@@ -24,8 +24,8 @@ export async function GET() {
   }
 }
 
-export async function POST(req: NextRequest) {
-  const denied = requireAdmin()
+export async function POST(req: NextRequest): Promise<Response> {
+  const denied = await requireAdmin()
   if (denied) return denied
 
   try {

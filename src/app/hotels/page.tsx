@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import SectionHeading from '@/components/ui/SectionHeading'
 import StarRating from '@/components/ui/StarRating'
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
   title: 'Hotels & Stays | Sunsky Tourism',
   description:
     'Handpicked hotels, palaces, desert camps, houseboats and beach resorts across India — with the best available rates and honest booking advice.',
+  alternates: { canonical: '/hotels' },
 }
 
 export default function HotelsPage() {
@@ -56,11 +58,13 @@ export default function HotelsPage() {
               <StaggerItem key={hotel.id}>
                 <article className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30">
                   <div className="relative h-56 overflow-hidden">
-                    <img
+                    <Image
                       loading="lazy" decoding="async"
                       src={hotel.image}
                       alt={hotel.name}
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" aria-hidden="true" />
                     <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-black/50 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-md">

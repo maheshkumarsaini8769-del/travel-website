@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ChevronDown, ArrowRight, MessageCircle } from 'lucide-react'
 import TypewriterText from '@/components/ui/TypewriterText'
@@ -45,13 +46,14 @@ export default function Hero() {
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden pt-24 pb-16">
       <div className="absolute inset-0">
-        <img
+        <Image
           src={heroImages.luxury}
           alt=""
-          className={`h-full w-full object-cover transition-opacity duration-700 ${mode === 'static' ? 'opacity-100' : 'opacity-30'}`}
+          fill
+          sizes="100vw"
+          priority
+          className={`object-cover transition-opacity duration-700 ${mode === 'static' ? 'opacity-100' : 'opacity-30'}`}
           aria-hidden="true"
-          fetchPriority="high"
-          decoding="async"
         />
         <div className={`cinematic-overlay absolute inset-0 ${mode === 'static' ? 'opacity-100' : ''}`} />
         <div className="orb left-[-10%] top-[20%] h-[420px] w-[420px] bg-orange-500/15" aria-hidden="true" />
@@ -146,12 +148,13 @@ export default function Hero() {
               transition={{ delay: 0.5, duration: 1, ease: [0.22, 1, 0.36, 1] }}
               className="relative h-full w-full"
             >
-              <img
+              <Image
                 src={heroImages.luxury}
                 alt="Scenic travel destination"
+                fill
+                sizes="(max-width: 1024px) 100vw, 45vw"
                 loading="lazy"
-                decoding="async"
-                className="h-full w-full rounded-[32px] object-cover shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
+                className="rounded-[32px] object-cover shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
               />
               <div className="absolute inset-0 rounded-[32px] ring-1 ring-inset ring-white/10" aria-hidden="true" />
               <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/15 bg-black/45 p-4 backdrop-blur-md">

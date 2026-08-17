@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { guides, guideBySlug } from '@/data/guides'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { whatsappPackage } from '@/lib/helpers'
@@ -20,6 +21,7 @@ export function generateMetadata({ params }: Props): Metadata {
   return {
     title: `${guide.title} | Sunsky Tourism`,
     description: guide.excerpt,
+    alternates: { canonical: `/travel-guides/${guide.slug}` },
   }
 }
 
@@ -33,7 +35,7 @@ export default function GuideDetailPage({ params }: Props) {
     <>
       <section className="relative flex min-h-[45vh] items-end overflow-hidden pt-24">
         <div className="absolute inset-0">
-          <img src={guide.image} alt={guide.title} fetchPriority="high" decoding="async" className="h-full w-full object-cover" />
+          <Image src={guide.image} alt={guide.title} fill sizes="100vw" priority className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07070a] via-black/60 to-black/30" aria-hidden="true" />
         </div>
         <div className="grain absolute inset-0" aria-hidden="true" />

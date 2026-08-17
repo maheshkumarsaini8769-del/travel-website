@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: 'Tours & Activities | Sunsky Tourism',
   description:
     'Handpicked tours and activities — Jaipur heritage walks, Udaipur sunset boat rides, Jaisalmer desert safaris, Goa water sports and Dubai desert adventures.',
+  alternates: { canonical: '/tours' },
 }
 
 export default function ToursPage() {
