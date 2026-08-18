@@ -11,6 +11,8 @@ interface Review {
   rating: number
   text: string
   packageName?: string
+  phone?: string
+  editedAt?: number
   approved: boolean
   featured: boolean
   createdAt: number
@@ -47,6 +49,16 @@ export default function AdminReviews() {
           },
           { key: 'text', label: 'Review', render: (r) => <span className="max-w-[340px] truncate text-slate-400">{r.text}</span> },
           { key: 'packageName', label: 'Package', render: (r) => <span className="text-xs text-slate-500">{r.packageName || '—'}</span> },
+          {
+            key: 'phone',
+            label: 'Phone',
+            render: (r) => (
+              <span className={`text-xs ${r.editedAt ? 'text-amber-400' : 'text-slate-500'}`}>
+                +{r.phone || '—'}
+                {r.editedAt ? ' (edited)' : ''}
+              </span>
+            ),
+          },
           { key: 'createdAt', label: 'Date', render: (r) => <span className="text-xs text-slate-500">{r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : '—'}</span> },
           { key: 'approved', label: 'Status', render: (r) => <Badge color={r.approved ? 'green' : 'amber'}>{r.approved ? 'Approved' : 'Pending'}</Badge> },
         ]}

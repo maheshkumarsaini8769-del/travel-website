@@ -1,11 +1,36 @@
 'use client'
 
-import { Star, Quote } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { Star, Quote, PenLine } from 'lucide-react'
 import SectionHeading from '@/components/ui/SectionHeading'
 import SpotlightCard from '@/components/ui/SpotlightCard'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 
-const testimonials = [
+interface RealReview {
+  name: string
+  packageName?: string
+  text: string
+  rating: number
+}
+
+interface SampleReview {
+  name: string
+  place: string
+  text: string
+  rating: number
+}
+
+interface ReviewCard {
+  name: string
+  place?: string
+  packageName?: string
+  text: string
+  rating: number
+  verified: boolean
+}
+
+const testimonials: SampleReview[] = [
   {
     name: 'Rakesh Sharma',
     place: 'Jaipur Heritage Tour',
@@ -45,6 +70,35 @@ const testimonials = [
 ]
 
 export default function TestimonialsSection() {
+  const [cards, setCards] = useState<ReviewCard[]>(
+    testimonials.map((t) => ({ ...t, verified: false }))
+  )
+
+  useEffect(() => {
+    let done = false
+    fetch('/api/reviews')
+      .then((r) => r.json())
+      .then((docs: RealReview[]) => {
+        if (done || !Array.isArray(docs) || !docs.length) return
+        const real: ReviewCard[] = docs
+          .filter((d) => d && typeof d.text === 'string')
+          .map((d) => ({
+            name: d.name,
+            packageName: d.packageName,
+            text: d.text,
+            rating: d.rating,
+            verified: true,
+          }))
+        setCards([...real, ...testimonials.map((t) => ({ ...t, verified: false }))].slice(0, 6))
+      })
+      .catch(() => {})
+    return () => {
+      done = true
+    }
+  }, [])
+
+  const anyVerified = cards.some((t) => t.verified)
+
   return (
     <section className="relative py-24 sm:py-32">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(249,115,22,0.05),transparent_55%)]" />
@@ -52,15 +106,19 @@ export default function TestimonialsSection() {
         <SectionHeading
           eyebrow="Traveller Stories"
           title="What a Sunsky trip feels like."
-          description="Sample stories of the kind of travel we plan every day — verified reviews from real travellers will be published here as they come in."
+          description={
+            anyVerified
+              ? 'Reviews from travellers who actually travelled with us — every one is verified before publishing.'
+              : 'Sample stories of the kind of travel we plan every day — verified reviews from real travellers will be published here as they come in.'
+          }
         />
         <p className="mt-2 text-center text-xs font-medium text-slate-500">
-          Names shown are illustrative. We never post invented reviews.
+          {anyVerified ? 'Want to be featured here? Share your genuine experience below.' : 'Names shown are illustrative. We never post invented reviews.'}
         </p>
 
         <StaggerGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((t) => (
-            <StaggerItem key={t.name}>
+          {cards.map((t) => (
+            <StaggerItem key={t.name + t.text.slice(0, 12)}>
               <SpotlightCard className="flex h-full flex-col rounded-3xl border border-white/10 bg-white/[0.03] p-7 transition-colors duration-500 hover:border-orange-400/25">
                 <div className="flex items-center justify-between">
                   <div className="flex gap-0.5">
@@ -69,21 +127,36 @@ export default function TestimonialsSection() {
                     ))}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                      Sample
-                    </span>
+                    {t.verified ? (
+                      <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+                        Verified
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                        Sample
+                      </span>
+                    )}
                     <Quote className="h-6 w-6 text-orange-500/40" />
                   </div>
                 </div>
                 <p className="mt-4 flex-1 text-sm leading-relaxed text-slate-300">“{t.text}”</p>
                 <div className="mt-6 border-t border-white/10 pt-4">
                   <p className="text-sm font-bold text-white">{t.name}</p>
-                  <p className="mt-0.5 text-xs text-orange-400">{t.place}</p>
+                  <p className="mt-0.5 text-xs text-orange-400">{t.place ?? t.packageName ?? 'General feedback'}</p>
                 </div>
               </SpotlightCard>
             </StaggerItem>
           ))}
         </StaggerGroup>
+
+        <div className="mt-14 text-center">
+          <Link
+            href="/feedback"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(249,115,22,0.45)]"
+          >
+            <PenLine className="h-4 w-4" /> Share your experience
+          </Link>
+        </div>
       </div>
     </section>
   )

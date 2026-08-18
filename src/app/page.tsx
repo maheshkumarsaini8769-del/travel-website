@@ -9,6 +9,7 @@ const AboutPreview = dynamic(() => import('@/components/home/AboutPreview'))
 const ProcessSection = dynamic(() => import('@/components/home/ProcessSection'))
 const WhySunsky = dynamic(() => import('@/components/home/WhySunsky'))
 const TestimonialsSection = dynamic(() => import('@/components/home/TestimonialsSection'))
+const ReviewSection = dynamic(() => import('@/components/reviews/ReviewSection'))
 const CtaSection = dynamic(() => import('@/components/home/CtaSection'))
 const HomeContact = dynamic(() => import('@/components/home/HomeContact'))
 
@@ -43,6 +44,7 @@ export default function Home() {
       <ProcessSection />
       <WhySunsky />
       <TestimonialsSection />
+      <ReviewSection />
       <CtaSection />
       <HomeContact />
     </>

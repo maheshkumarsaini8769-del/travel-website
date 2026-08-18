@@ -259,11 +259,13 @@ export interface ReviewDoc {
   name: string
   rating: number
   text: string
+  phone?: string
   packageId?: string
   packageName?: string
   approved: boolean
   featured: boolean
   createdAt: number
+  editedAt?: number
 }
 
 export interface NotificationDoc {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import PageHero from '@/components/ui/PageHero'
 import ContactForm from '@/components/contact/ContactForm'
 import FaqAccordion from '@/components/ui/FaqAccordion'
+import ReviewSection from '@/components/reviews/ReviewSection'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { contact, mapsUrl } from '@/data/contact'
@@ -194,6 +195,7 @@ export default function ContactPage() {
           <FaqAccordion items={faqs} className="mt-2" />
         </div>
       </section>
+      <ReviewSection compact />
     </>
   )
 }

@@ -44,6 +44,7 @@ export default function Footer() {
                 { name: 'Offers', href: '/offers' },
                 { name: 'Guides', href: '/travel-guides' },
                 { name: 'Plan My Trip', href: '/plan-your-trip' },
+                { name: 'Share Feedback', href: '/feedback' },
                 { name: 'About', href: '/about' },
                 { name: 'Contact', href: '/contact' },
               ].map((l) => (
