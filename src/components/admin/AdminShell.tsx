@@ -203,7 +203,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const sidebar = (
     <nav className="flex h-full flex-col overflow-y-auto px-3 py-4">
       <Link href="/admin" className="mb-5 flex items-center gap-2.5 px-2">
-        <Image src="/images/logo.png" alt="Sunsky Tourism logo" width={1536} height={1024} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+        <Image src="/images/logo.webp" alt="Sunsky Tourism logo" width={1536} height={1024} className="h-9 w-9 shrink-0 rounded-full object-cover" />
         <div className="leading-tight">
           <p className="text-sm font-extrabold tracking-wide text-white">
             SUNSKY <span className="text-orange-400">TOURISM</span>

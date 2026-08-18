@@ -66,10 +66,11 @@ export default function Navbar() {
         <nav className="mx-auto flex h-16 sm:h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
           <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label="Sunsky Tourism home">
             <Image
-              src="/images/logo.png"
+              src="/images/logo.webp"
               alt="Sunsky Tourism logo"
               width={1536}
               height={1024}
+              sizes="36px"
               className="h-9 w-9 shrink-0 rounded-full object-cover"
               priority
             />

@@ -21,7 +21,7 @@ export const GLOBE_RADIUS = 1.55
 export const EARTH_START_Y = -1.378
 
 function GlobeMesh() {
-  const texture = useTexture('/images/earth-texture.png')
+  const texture = useTexture('/images/earth-texture.webp')
   return (
     <mesh>
       <sphereGeometry args={[GLOBE_RADIUS, 96, 96]} />

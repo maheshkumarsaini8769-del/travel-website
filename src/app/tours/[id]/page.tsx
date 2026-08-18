@@ -7,6 +7,7 @@ import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
 import FaqAccordion from '@/components/ui/FaqAccordion'
 import BookingPanel from '@/components/tours/BookingPanel'
+import JsonLd from '@/components/seo/JsonLd'
 import {
   Clock,
   Users,
@@ -60,6 +61,47 @@ export default function TourDetailPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: tour.title,
+            description: `${tour.tagline} — ${tour.durationLabel} tour in ${tour.destination}. ${tour.priceLabel}. Book through Sunsky Tourism.`,
+            image: [`https://www.sunskytourism.in${tour.images[0]}`],
+            url: `https://www.sunskytourism.in/tours/${tour.id}`,
+            brand: { '@type': 'Brand', name: 'Sunsky Tourism' },
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: 'https://www.sunskytourism.in',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Tours',
+                item: 'https://www.sunskytourism.in/tours',
+              },
+              { '@type': 'ListItem', position: 3, name: tour.title },
+            ],
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: tour.faqs.map((faq) => ({
+              '@type': 'Question',
+              name: faq.question,
+              acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+            })),
+          },
+        ]}
+      />
       <section className="relative flex min-h-[55vh] items-end overflow-hidden pt-24">
         <div className="absolute inset-0">
           <Image src={tour.images[0]} alt={tour.title} fill sizes="100vw" priority className="object-cover" />

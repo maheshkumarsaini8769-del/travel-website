@@ -8,6 +8,7 @@ import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
 import StarRating from '@/components/ui/StarRating'
 import BookingWidget from '@/components/packages/BookingWidget'
+import JsonLd from '@/components/seo/JsonLd'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { whatsappPackage } from '@/lib/helpers'
 import { mapsUrl } from '@/data/contact'
@@ -70,6 +71,52 @@ export default async function PackageDetailPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: pkg.name,
+            description: `${pkg.tagline}. ${pkg.duration} tour covering ${pkg.places.join(
+              ', '
+            )}. Book with Sunsky Tourism, Sikar.`,
+            image: [`https://www.sunskytourism.in${pkg.image}`],
+            url: `https://www.sunskytourism.in/packages/${pkg.id}`,
+            brand: { '@type': 'Brand', name: 'Sunsky Tourism' },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: pkg.rating,
+              reviewCount: pkg.reviewCount,
+            },
+            offers: {
+              '@type': 'Offer',
+              url: `https://www.sunskytourism.in/packages/${pkg.id}`,
+              priceCurrency: 'INR',
+              price: pkg.pricePerPerson,
+              availability: 'https://schema.org/InStock',
+            },
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: 'https://www.sunskytourism.in',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Packages',
+                item: 'https://www.sunskytourism.in/packages',
+              },
+              { '@type': 'ListItem', position: 3, name: pkg.name },
+            ],
+          },
+        ]}
+      />
       <section className="relative flex min-h-[55vh] items-end overflow-hidden pt-24">
         <div className="absolute inset-0">
           <Image src={pkg.image} alt={pkg.name} fill sizes="100vw" priority className="object-cover" />

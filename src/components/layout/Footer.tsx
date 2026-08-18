@@ -16,10 +16,11 @@ export default function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2.5">
               <Image
-              src="/images/logo.png"
+              src="/images/logo.webp"
               alt="Sunsky Tourism logo"
               width={1536}
               height={1024}
+              sizes="40px"
               className="h-10 w-10 shrink-0 rounded-full object-cover"
             />
               <span className="text-xl font-extrabold tracking-wide text-white">

@@ -1,4 +1,4 @@
-const i = (name: string) => `/images/${name}.jpg`
+const i = (name: string) => `/images/${name}.webp`
 
 export const heroImages = {
   luxury: i('hero'),

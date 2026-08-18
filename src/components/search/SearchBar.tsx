@@ -193,6 +193,7 @@ export default function SearchBar() {
                               alt=""
                               width={96}
                               height={96}
+                              sizes="48px"
                               loading="lazy" decoding="async"
                               className="h-12 w-12 shrink-0 rounded-xl object-cover"
                             />

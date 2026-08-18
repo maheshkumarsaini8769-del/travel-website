@@ -7,6 +7,7 @@ import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { whatsappDestination } from '@/lib/helpers'
+import JsonLd from '@/components/seo/JsonLd'
 import { ArrowLeft, CalendarDays, MapPin, Sparkles, MessageCircle, Navigation } from 'lucide-react'
 import { contact, mapsUrl } from '@/data/contact'
 
@@ -32,8 +33,40 @@ export default function DestinationDetailPage({ params }: Props) {
   const dest = destinationById(params.id)
   if (!dest) notFound()
 
-  return (
+return (
     <>
+      <JsonLd
+        data={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'TouristDestination',
+            name: dest.name,
+            description: `${dest.tagline} — ${dest.description} Best time to visit: ${dest.bestTime}.`,
+            image: [`https://www.sunskytourism.in${dest.image}`],
+            url: `https://www.sunskytourism.in/destinations/${dest.id}`,
+            touristType: [...dest.highlights],
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: 'https://www.sunskytourism.in',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Destinations',
+                item: 'https://www.sunskytourism.in/destinations',
+              },
+              { '@type': 'ListItem', position: 3, name: dest.name },
+            ],
+          },
+        ]}
+      />
       <section className="relative flex min-h-[55vh] items-end overflow-hidden pt-24">
         <div className="absolute inset-0">
           <Image src={dest.image} alt={dest.name} fill sizes="100vw" priority className="object-cover" />

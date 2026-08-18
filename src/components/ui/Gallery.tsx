@@ -88,6 +88,7 @@ export default function Gallery({ images, alt }: GalleryProps) {
                 alt={`${alt} photo ${index + 1}`}
                 width={1600}
                 height={1200}
+                sizes="(max-width: 768px) 92vw, 1600px"
                 className="max-h-[85vh] max-w-[92vw] rounded-2xl object-contain"
               />
             </motion.div>

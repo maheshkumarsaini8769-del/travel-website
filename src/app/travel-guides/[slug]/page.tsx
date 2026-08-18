@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { guides, guideBySlug } from '@/data/guides'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { whatsappPackage } from '@/lib/helpers'
+import JsonLd from '@/components/seo/JsonLd'
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Lightbulb, MessageCircle } from 'lucide-react'
 
 interface Props {
@@ -31,8 +32,35 @@ export default function GuideDetailPage({ params }: Props) {
 
   const related = guides.filter((g) => g.slug !== guide.slug).slice(0, 2)
 
+  const monthMatch = guide.date.match(/^([A-Za-z]+)\s+(\d{4})$/)
+  const parsedMonth = monthMatch
+    ? new Date(`${monthMatch[1]} 1, ${monthMatch[2]}`).toISOString().slice(0, 10)
+    : undefined
+
   return (
     <>
+      {parsedMonth ? (
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: guide.title,
+            description: guide.excerpt,
+            image: [`https://www.sunskytourism.in${guide.image}`],
+            url: `https://www.sunskytourism.in/travel-guides/${guide.slug}`,
+            datePublished: parsedMonth,
+            author: { '@type': 'Organization', name: 'Sunsky Tourism' },
+            publisher: {
+              '@type': 'Organization',
+              name: 'Sunsky Tourism',
+              logo: {
+                '@type': 'ImageObject',
+                url: 'https://www.sunskytourism.in/images/logo.png',
+              },
+            },
+          }}
+        />
+      ) : null}
       <section className="relative flex min-h-[45vh] items-end overflow-hidden pt-24">
         <div className="absolute inset-0">
           <Image src={guide.image} alt={guide.title} fill sizes="100vw" priority className="object-cover" />

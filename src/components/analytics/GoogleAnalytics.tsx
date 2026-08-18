@@ -36,6 +36,8 @@ export default function GoogleAnalytics() {
 
   return (
     <>
+      <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      <link rel="preconnect" href="https://www.googletagmanager.com" />
       <Script
         id="gtag-init"
         strategy="afterInteractive"
