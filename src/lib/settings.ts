@@ -16,6 +16,8 @@ export interface SiteSettings {
     website: string
     address: string
     addressFull: string
+    latitude: string
+    longitude: string
   }
   hero: {
     eyebrow: string
@@ -48,6 +50,8 @@ export const defaultSettings: SiteSettings = {
     website: contact.website,
     address: contact.address,
     addressFull: contact.addressFull,
+    latitude: '27.6094',
+    longitude: '75.1399',
   },
   hero: {
     eyebrow: 'SUNSKY TOURISM',

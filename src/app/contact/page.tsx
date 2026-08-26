@@ -9,6 +9,7 @@ import { contact, mapsUrl } from '@/data/contact'
 import { ctaImages } from '@/data/images'
 import { telPrimary, telSecondary } from '@/lib/helpers'
 import { Phone, Mail, MapPin, Clock, UserRound } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 const faqs = [
   {
@@ -90,6 +91,7 @@ export default function ContactPage() {
         description="Call, WhatsApp, email or walk in — we are happy to help at every step of your travel planning."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Contact', url: '/contact' }]} />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

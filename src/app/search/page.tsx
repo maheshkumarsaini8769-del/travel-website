@@ -89,7 +89,7 @@ async function SearchResults({ query }: { query: string }) {
               >
                 <Image
                   src={item.image}
-                  alt=""
+                  alt={item.title}
                   width={128}
                   height={128}
                   loading="lazy" decoding="async"

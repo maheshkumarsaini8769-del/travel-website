@@ -22,6 +22,7 @@ const empty: FormState = {
   overview: '',
   pricePerPerson: 0,
   originalPrice: 0,
+  cost: 0,
   currency: '₹',
   basis: 'per person',
   validity: '',
@@ -66,6 +67,7 @@ function fromForm(f: FormState): FormState {
     ...f,
     pricePerPerson: Number(f.pricePerPerson) || 0,
     originalPrice: Number(f.originalPrice) || 0,
+    cost: Number(f.cost) || 0,
     rating: Number(f.rating) || 0,
     reviewCount: Number(f.reviewCount) || 0,
     featured: Boolean(f.featured),
@@ -355,7 +357,7 @@ export default function PackageForm({ initial, editableId }: { initial?: TravelP
       </Section>
 
       <Section title="Pricing">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-4">
           <Field label="Price per person (₹)">
             <input
               type="number"
@@ -371,6 +373,15 @@ export default function PackageForm({ initial, editableId }: { initial?: TravelP
               min={0}
               value={form.originalPrice || ''}
               onChange={(e) => update('originalPrice', e.target.value === '' ? 0 : Number(e.target.value))}
+              className={inputCls}
+            />
+          </Field>
+          <Field label="Your cost (₹)">
+            <input
+              type="number"
+              min={0}
+              value={form.cost || ''}
+              onChange={(e) => update('cost', e.target.value === '' ? 0 : Number(e.target.value))}
               className={inputCls}
             />
           </Field>

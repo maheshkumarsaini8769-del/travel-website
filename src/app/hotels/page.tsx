@@ -10,6 +10,7 @@ import { ctaImages } from '@/data/images'
 import { waLink } from '@/data/contact'
 import { waHotelMessage } from '@/lib/helpers'
 import { BedDouble, Check, MapPin, Wallet } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Hotels & Stays | Sunsky Tourism',
@@ -27,6 +28,7 @@ export default function HotelsPage() {
         description="From royal palace hotels to lake houseboats and luxury desert camps — handpicked stays at rates better than booking portals."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Hotels', url: '/hotels' }]} />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

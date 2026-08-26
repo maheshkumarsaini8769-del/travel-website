@@ -22,7 +22,7 @@ export default function PageHero({ eyebrow, title, description, image }: PageHer
         >
           <Image
             src={image}
-            alt=""
+            alt={title}
             fill
             sizes="100vw"
             priority

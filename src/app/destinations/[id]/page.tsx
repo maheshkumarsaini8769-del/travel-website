@@ -7,6 +7,7 @@ import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { whatsappDestination } from '@/lib/helpers'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import JsonLd from '@/components/seo/JsonLd'
 import { ArrowLeft, CalendarDays, MapPin, Sparkles, MessageCircle, Navigation } from 'lucide-react'
 import { contact, mapsUrl } from '@/data/contact'
@@ -23,9 +24,15 @@ export function generateMetadata({ params }: Props): Metadata {
   const dest = destinationById(params.id)
   if (!dest) return { title: 'Destination Not Found | Sunsky Tourism' }
   return {
-title: `${dest.name} | Sunsky Tourism`,
+    title: `${dest.name} | Sunsky Tourism`,
     description: `${dest.tagline} — ${dest.description} Plan your trip to ${dest.name} with Sunsky Tourism.`,
     alternates: { canonical: `/destinations/${dest.id}` },
+    openGraph: {
+      title: `${dest.name} | Sunsky Tourism`,
+      description: `${dest.tagline} — ${dest.description} Plan your trip to ${dest.name} with Sunsky Tourism.`,
+      url: `https://www.sunskytourism.in/destinations/${dest.id}`,
+      images: [{ url: dest.image, width: 1200, height: 630, alt: dest.name }],
+    },
   }
 }
 
@@ -92,6 +99,14 @@ return (
           <p className="mt-3 text-lg font-medium text-orange-300 sm:text-xl">{dest.tagline}</p>
         </div>
       </section>
+
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: '/' },
+          { name: 'Destinations', url: '/destinations' },
+          { name: dest.name, url: `/destinations/${dest.id}` },
+        ]}
+      />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

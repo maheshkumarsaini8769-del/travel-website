@@ -37,7 +37,7 @@ export default function ServicesSection() {
                     href="/services"
                     className="relative z-10 mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-400 transition-colors hover:text-orange-300"
                   >
-                    Learn more
+                    Learn about {service.name}
                     <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </Link>
                 </SpotlightCard>

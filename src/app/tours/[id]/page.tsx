@@ -7,6 +7,7 @@ import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
 import FaqAccordion from '@/components/ui/FaqAccordion'
 import BookingPanel from '@/components/tours/BookingPanel'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import JsonLd from '@/components/seo/JsonLd'
 import {
   Clock,
@@ -38,6 +39,12 @@ export function generateMetadata({ params }: Props): Metadata {
     title: `${tour.title} | Sunsky Tourism`,
     description: `${tour.tagline} — ${tour.durationLabel} tour in ${tour.destination}. ${tour.priceLabel}. Book through Sunsky Tourism.`,
     alternates: { canonical: `/tours/${tour.id}` },
+    openGraph: {
+      title: `${tour.title} | Sunsky Tourism`,
+      description: `${tour.tagline} — ${tour.durationLabel} tour in ${tour.destination}. ${tour.priceLabel}. Book through Sunsky Tourism.`,
+      url: `https://www.sunskytourism.in/tours/${tour.id}`,
+      images: [{ url: tour.images[0], width: 1200, height: 630, alt: tour.title }],
+    },
   }
 }
 
@@ -145,6 +152,14 @@ export default function TourDetailPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: '/' },
+          { name: 'Tours', url: '/tours' },
+          { name: tour.title, url: `/tours/${tour.id}` },
+        ]}
+      />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

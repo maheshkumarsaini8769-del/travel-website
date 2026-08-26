@@ -9,6 +9,7 @@ import { services } from '@/data/services'
 import { ctaImages } from '@/data/images'
 import { whatsappDefault } from '@/lib/helpers'
 import { Check, ArrowRight } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Services | Sunsky Tourism',
@@ -26,6 +27,7 @@ export default function ServicesPage() {
         description="From flights and hotels to visas and sightseeing cabs — plan your complete journey with a single call."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Services', url: '/services' }]} />
 
       <section className="relative py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -89,6 +89,29 @@ export default function AdminPackages() {
               </span>
             ),
           },
+          {
+            key: 'cost',
+            label: 'Your Cost',
+            render: (p) => (
+              <span className="text-amber-400">
+                {p.currency || '₹'}
+                {(p.cost ?? 0).toLocaleString('en-IN')}
+              </span>
+            ),
+          },
+          {
+            key: 'profit',
+            label: 'Profit',
+            render: (p) => {
+              const profit = p.pricePerPerson - (p.cost ?? 0)
+              return (
+                <span className={`font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {p.currency || '₹'}
+                  {profit.toLocaleString('en-IN')}
+                </span>
+              )
+            },
+          },
           { key: 'duration', label: 'Duration', render: (p) => <span className="text-slate-400">{p.duration || '—'}</span> },
           {
             key: 'featured',

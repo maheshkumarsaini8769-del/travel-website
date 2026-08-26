@@ -190,7 +190,7 @@ export default function SearchBar() {
                           >
                             <Image
                               src={item.image}
-                              alt=""
+                              alt={item.title}
                               width={96}
                               height={96}
                               sizes="48px"

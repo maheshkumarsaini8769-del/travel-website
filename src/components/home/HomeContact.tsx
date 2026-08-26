@@ -1,14 +1,32 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { MessageCircle, Phone, Navigation, Mail, MapPin, UserRound } from 'lucide-react'
 import SectionHeading from '@/components/ui/SectionHeading'
 import SpotlightCard from '@/components/ui/SpotlightCard'
 import { Reveal, StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
-import { contact, mapsUrl, waLink } from '@/data/contact'
+import { contact, mapsUrl as fallbackMaps, waLink } from '@/data/contact'
 
 const homeContactMessage = 'Hello Sunsky Tourism, I want to plan my next journey. Please guide me.'
 
+function useMapsUrl() {
+  const [url, setUrl] = useState(fallbackMaps)
+  useEffect(() => {
+    fetch('/api/settings', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => {
+        const b = d?.business
+        if (b?.latitude && b?.longitude) {
+          setUrl(`https://www.google.com/maps?q=${b.latitude},${b.longitude}`)
+        }
+      })
+      .catch(() => {})
+  }, [])
+  return url
+}
+
 export default function HomeContact() {
+  const mapsUrl = useMapsUrl()
   return (
     <section className="relative py-24 sm:py-32">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(249,115,22,0.06),transparent_50%)]" />
@@ -43,7 +61,7 @@ export default function HomeContact() {
               {contact.phones.map((phone, i) => (
                 <a
                   key={phone}
-                  href={`tel:+91${contact.phoneLinks[i]}`}
+                  href={`tel:${contact.phoneLinks[i]}`}
                   className="mt-1.5 block font-bold text-white transition-colors hover:text-orange-400"
                 >
                   {phone}
@@ -94,7 +112,7 @@ export default function HomeContact() {
               WhatsApp
             </a>
             <a
-              href={`tel:+91${contact.phoneLinks[0]}`}
+              href={`tel:${contact.phoneLinks[0]}`}
               className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5 sm:w-auto"
             >
               <Phone className="h-5 w-5" />

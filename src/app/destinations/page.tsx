@@ -7,6 +7,7 @@ import { destinations, type DestinationCategory } from '@/data/destinations'
 import { ctaImages } from '@/data/images'
 import { whatsappDestination } from '@/lib/helpers'
 import { ArrowUpRight, MapPin } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Destinations | Sunsky Tourism',
@@ -33,6 +34,7 @@ export default function DestinationsPage() {
         description="From Rajasthan\u2019s royal cities to beaches, mountains and global skylines — pick a place, and we plan the rest."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Destinations', url: '/destinations' }]} />
 
       {grouped.map(({ category, items }) => (
         <section key={category} className="relative pb-20 last:pb-32 sm:pb-24">

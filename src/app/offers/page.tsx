@@ -7,6 +7,7 @@ import { offers } from '@/data/offers'
 import { ctaImages } from '@/data/images'
 import { waLink } from '@/data/contact'
 import { ArrowRight, BadgePercent, Copy, Sparkles } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Offers & Deals | Sunsky Tourism',
@@ -24,6 +25,7 @@ export default function OffersPage() {
         description="Limited-time offers on our most-loved packages and stays. Quote the code on WhatsApp or over the phone — that's all it takes."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Offers', url: '/offers' }]} />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

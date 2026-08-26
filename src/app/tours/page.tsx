@@ -5,6 +5,7 @@ import TourFilters from '@/components/tours/TourFilters'
 import { ctaImages } from '@/data/images'
 import { whatsappDefault } from '@/lib/helpers'
 import { MessageCircle } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Tours & Activities | Sunsky Tourism',
@@ -22,6 +23,7 @@ export default function ToursPage() {
         description="Small-group and private tours across Rajasthan, India and beyond — each one run by local partners we trust and priced honestly on request."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Tours', url: '/tours' }]} />
 
       <section className="relative pb-20 sm:pb-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

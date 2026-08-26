@@ -9,6 +9,7 @@ import { aboutImages, ctaImages } from '@/data/images'
 import { contact } from '@/data/contact'
 import { whatsappDefault } from '@/lib/helpers'
 import { Award, Users, MapPin, HeartHandshake } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'About Us | Sunsky Tourism',
@@ -56,6 +57,7 @@ export default function AboutPage() {
         description="We are a Sikar-based travel agency that believes a great trip is 10% destination and 90% planning."
         image={ctaImages.about}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'About', url: '/about' }]} />
 
       <section className="relative py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -137,7 +139,7 @@ export default function AboutPage() {
       <section className="relative pb-24 sm:pb-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-[32px] border border-white/10">
-            <Image loading="lazy" decoding="async" src={aboutImages.experience} alt="" fill sizes="100vw" className="h-[320px] w-full object-cover sm:h-[400px]" aria-hidden="true" />
+            <Image loading="lazy" decoding="async" src={aboutImages.experience} alt="Sunsky Tourism experience — trusted travel agency in Sikar Rajasthan" fill sizes="100vw" className="h-[320px] w-full object-cover sm:h-[400px]" aria-hidden="true" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/20" aria-hidden="true" />
             <div className="absolute inset-x-0 bottom-0 p-8 sm:p-12">
               <p className="max-w-2xl text-xl font-semibold leading-snug text-white sm:text-2xl">

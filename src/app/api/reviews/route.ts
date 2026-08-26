@@ -59,7 +59,13 @@ export async function GET(req: NextRequest) {
   // Public: approved reviews only (phone number is never exposed)
   const docs = await getReviews()
   const trimmed = docs.map(({ phone: _phone, ...rest }) => rest)
-  return Response.json(trimmed, { headers: { 'cache-control': 'no-store' } })
+  return Response.json(trimmed, {
+    headers: {
+      'cache-control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'pragma': 'no-cache',
+      'expires': '0',
+    },
+  })
 }
 
 export async function POST(req: NextRequest) {
@@ -91,8 +97,8 @@ export async function POST(req: NextRequest) {
             text,
             packageId,
             packageName,
-            approved: false,
-            featured: false,
+            approved: true,
+            featured: existing.featured,
             editedAt: Date.now(),
           },
         }
@@ -108,7 +114,7 @@ export async function POST(req: NextRequest) {
       phone,
       packageId,
       packageName,
-      approved: false,
+      approved: true,
       featured: false,
       createdAt: Date.now(),
     })

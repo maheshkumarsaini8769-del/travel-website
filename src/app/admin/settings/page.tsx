@@ -1,13 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Building2, Compass, FileText, Home, Megaphone, PanelBottom, Share2, Search, Wallet } from 'lucide-react'
+import { Building2, Compass, FileText, Home, Megaphone, PanelBottom, Share2, Search, Wallet, Shield, Eye, EyeOff } from 'lucide-react'
 import { Button, Field, PageHeader, Spinner, useToast } from '@/components/admin/ui'
 import type { SiteSettings } from '@/lib/settings'
 
 type SectionKey = keyof SiteSettings
 
-const TABS: { key: SectionKey; label: string; icon: typeof Home }[] = [
+const TABS: { key: SectionKey | 'security'; label: string; icon: typeof Home }[] = [
   { key: 'business', label: 'Business', icon: Building2 },
   { key: 'hero', label: 'Hero', icon: Compass },
   { key: 'about', label: 'About', icon: FileText },
@@ -16,13 +16,14 @@ const TABS: { key: SectionKey; label: string; icon: typeof Home }[] = [
   { key: 'social', label: 'Social', icon: Share2 },
   { key: 'seo', label: 'SEO', icon: Search },
   { key: 'booking', label: 'Booking Rules', icon: Wallet },
+  { key: 'security', label: 'Security', icon: Shield },
 ]
 
 type EditorValue = string | number | boolean | string[]
 
 export default function SettingsPage() {
   const { toast } = useToast()
-  const [tab, setTab] = useState<SectionKey>('business')
+  const [tab, setTab] = useState<SectionKey | 'security'>('business')
   const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [busy, setBusy] = useState(false)
   const [savedMsg, setSavedMsg] = useState('')
@@ -44,10 +45,12 @@ export default function SettingsPage() {
     return <Spinner label="Loading settings…" />
   }
 
-  const section = settings[tab] as unknown as Record<string, EditorValue>
+  const isSecurity = tab === 'security'
+  const section = isSecurity ? {} : (settings[tab as SectionKey] as unknown as Record<string, EditorValue>)
 
   const set = (key: string, value: EditorValue) => {
-    setSettings((s) => (s ? ({ ...s, [tab]: { ...(s[tab] as Record<string, unknown>), [key]: value } } as SiteSettings) : s))
+    if (isSecurity) return
+    setSettings((s) => (s ? ({ ...s, [tab]: { ...(s[tab as SectionKey] as Record<string, unknown>), [key]: value } } as SiteSettings) : s))
     setSavedMsg('')
   }
 
@@ -109,9 +112,11 @@ export default function SettingsPage() {
         title="Settings"
         subtitle="Business info, website text and booking rules"
         actions={
-          <Button onClick={save} disabled={busy}>
-            {busy ? 'Saving…' : 'Save section'}
-          </Button>
+          !isSecurity ? (
+            <Button onClick={save} disabled={busy}>
+              {busy ? 'Saving…' : 'Save section'}
+            </Button>
+          ) : null
         }
       />
 
@@ -150,6 +155,8 @@ export default function SettingsPage() {
             <ListField k="phoneLinks" label="Call links (tel: links)" />
             <Input k="whatsappPrimary" label="Primary WhatsApp number" />
             <Input k="whatsappSecondary" label="Secondary WhatsApp number" />
+            <Input k="latitude" label="Google Maps Latitude" placeholder="e.g. 27.6094" />
+            <Input k="longitude" label="Google Maps Longitude" placeholder="e.g. 75.1399" />
           </div>
         )}
 
@@ -212,9 +219,123 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
+
+        {tab === 'security' && <SecurityTab />}
       </div>
 
       <p className="mt-4 text-xs text-slate-600">{savedMsg ? 'Saved — changes are live.' : 'Changes apply instantly across the website.'}</p>
+    </div>
+  )
+}
+
+function SecurityTab() {
+  const { toast } = useToast()
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const changePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      toast('error', 'Fill in all fields')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast('error', 'New passwords do not match')
+      return
+    }
+    if (newPassword.length < 6) {
+      toast('error', 'New password must be at least 6 characters')
+      return
+    }
+    setBusy(true)
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        toast('success', 'Password changed successfully')
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+      } else {
+        toast('error', data.error ?? 'Failed to change password')
+      }
+    } catch {
+      toast('error', 'Network error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="max-w-md">
+      <h3 className="text-lg font-bold text-white">Change Password</h3>
+      <p className="mt-1 text-sm text-slate-400">Update your admin login password.</p>
+
+      <div className="mt-6 space-y-4">
+        <Field label="Current password">
+          <div className="relative">
+            <input
+              type={showCurrent ? 'text' : 'password'}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter current password"
+              className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 pr-11 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrent(!showCurrent)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+            >
+              {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </Field>
+
+        <Field label="New password">
+          <div className="relative">
+            <input
+              type={showNew ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password (min 6 characters)"
+              className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 pr-11 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
+            />
+            <button
+              type="button"
+              onClick={() => setShowNew(!showNew)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+            >
+              {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </Field>
+
+        <Field label="Confirm new password">
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Re-enter new password"
+            className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
+          />
+        </Field>
+      </div>
+
+      <button
+        onClick={changePassword}
+        disabled={busy || !currentPassword || !newPassword || !confirmPassword}
+        className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {busy ? 'Changing…' : 'Change Password'}
+        <Shield className="h-4 w-4" />
+      </button>
     </div>
   )
 }

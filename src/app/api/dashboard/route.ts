@@ -181,15 +181,25 @@ export async function GET(req: NextRequest) {
   for (const d of dbPackages) if (d.name) pkgName.set(d._id, d.name)
 
   const topPackages = Object.keys(pkgViews)
-    .map((pid) => ({
-      id: pid,
-      name: pkgName.get(pid) ?? pid,
-      views: pkgViews[pid] ?? 0,
-      bookClicks: pkgBookClicks[pid] ?? 0,
-      whatsapp: pkgWhatsApp[pid] ?? 0,
-      bookings: pkgBookings[pid]?.bookings ?? 0,
-      revenue: pkgBookings[pid]?.revenue ?? 0,
-    }))
+    .map((pid) => {
+      const pkg = staticPackages.find((p) => p.id === pid)
+      const bookingsCount = pkgBookings[pid]?.bookings ?? 0
+      const revenue = pkgBookings[pid]?.revenue ?? 0
+      const costPerPerson = pkg?.cost ?? 0
+      const totalCost = costPerPerson * bookingsCount
+      return {
+        id: pid,
+        name: pkgName.get(pid) ?? pid,
+        views: pkgViews[pid] ?? 0,
+        bookClicks: pkgBookClicks[pid] ?? 0,
+        whatsapp: pkgWhatsApp[pid] ?? 0,
+        bookings: bookingsCount,
+        revenue,
+        cost: totalCost,
+        profit: revenue - totalCost,
+        costPerPerson,
+      }
+    })
     .sort((a, b) => b.views - a.views)
     .slice(0, 10)
 
@@ -306,12 +316,21 @@ export async function GET(req: NextRequest) {
   // ---- Today ----
   const todayEvents = cur.filter((e) => e.timestamp >= startOfDay)
   const todayVisitors = new Set(todayEvents.map((e) => e.visitorId).filter(Boolean))
+  const todayBookings = bookings.filter((b) => b.createdAt >= startOfDay)
+  const todayRevenue = payments.filter((p) => p.date >= startOfDay).reduce((s, p) => s + p.amount, 0)
+  const todayCost = todayBookings.reduce((s, b) => {
+    const pid = b.packageRef?.id
+    const pkg = staticPackages.find((p) => p.id === pid)
+    return s + (pkg?.cost ?? 0) * (b.travellers || 1)
+  }, 0)
   const today = {
     visitors: todayVisitors.size,
     pageViews: todayEvents.filter((e) => e.eventName === 'PAGE_VIEW').length,
     searches: todayEvents.filter((e) => e.eventName === 'SEARCH').length,
-    bookings: bookings.filter((b) => b.createdAt >= startOfDay).length,
-    revenue: payments.filter((p) => p.date >= startOfDay).reduce((s, p) => s + p.amount, 0),
+    bookings: todayBookings.length,
+    revenue: todayRevenue,
+    cost: todayCost,
+    profit: todayRevenue - todayCost,
   }
 
   return Response.json({

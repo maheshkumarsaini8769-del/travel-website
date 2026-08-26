@@ -22,6 +22,7 @@ export interface TravelPackage {
   overview: string
   pricePerPerson: number
   originalPrice: number
+  cost: number
   currency: string
   basis: string
   validity: string
@@ -57,6 +58,7 @@ export const packages: TravelPackage[] = [
       'Travel the royal road of Rajasthan — pink Jaipur, blue Jodhpur, golden Jaisalmer and lakeside Udaipur — with guided heritage walks, palace visits and a night at a luxury desert camp under the stars.',
     pricePerPerson: 18499,
     originalPrice: 21999,
+    cost: 12000,
     currency: '₹',
     basis: 'per person on twin sharing',
     validity: 'Valid until 31 March 2026',
@@ -130,6 +132,7 @@ export const packages: TravelPackage[] = [
       'The perfect beach escape — stay in a beachfront resort, hop between Baga and Palolem, try water sports, and explore Old Goa\u2019s churches and forts.',
     pricePerPerson: 14999,
     originalPrice: 17999,
+    cost: 9500,
     currency: '₹',
     basis: 'per person on twin sharing',
     validity: 'Valid until 31 March 2026',
@@ -196,6 +199,7 @@ export const packages: TravelPackage[] = [
       'Drift on Dal Lake in a shikara, ride the Gulmarg gondola to snowline, and wander Pahalgam\u2019s meadows — Kashmir at its most peaceful.',
     pricePerPerson: 20999,
     originalPrice: 24999,
+    cost: 14000,
     currency: '₹',
     basis: 'per person on twin sharing',
     validity: 'Valid until 31 March 2026',
@@ -273,6 +277,7 @@ export const packages: TravelPackage[] = [
       'A modern city escape — top the Burj Khalifa, cruise the Marina, spend an evening on a red-dune desert safari and shop till you drop at Dubai Mall.',
     pricePerPerson: 54999,
     originalPrice: 64999,
+    cost: 38000,
     currency: '₹',
     basis: 'per person on twin sharing (land only)',
     validity: 'Valid until 30 April 2026',
@@ -345,6 +350,7 @@ export const packages: TravelPackage[] = [
       'Head up the mountains to Manali — river rafting, Solang Valley adventures, temple visits and long drives through pine forests and apple orchards.',
     pricePerPerson: 16499,
     originalPrice: 19499,
+    cost: 10500,
     currency: '₹',
     basis: 'per person on twin sharing',
     validity: 'Valid until 31 March 2026',

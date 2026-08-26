@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Star, Trash2 } from 'lucide-react'
+import { Star, Trash2, MessageCircle, X } from 'lucide-react'
 import { DataTable } from '@/components/admin/DataTable'
 import { Badge, ConfirmDialog, PageHeader, useToast } from '@/components/admin/ui'
 
@@ -16,11 +16,16 @@ interface Review {
   approved: boolean
   featured: boolean
   createdAt: number
+  reply?: string
+  repliedAt?: number
 }
 
 export default function AdminReviews() {
   const { toast } = useToast()
   const [toDelete, setToDelete] = useState<Review | null>(null)
+  const [replyTo, setReplyTo] = useState<Review | null>(null)
+  const [replyText, setReplyText] = useState('')
+  const [replyBusy, setReplyBusy] = useState(false)
 
   const update = async (r: Review, patch: Partial<Review>) => {
     const res = await fetch(`/api/reviews/${r._id}`, {
@@ -30,6 +35,36 @@ export default function AdminReviews() {
     })
     if (res.ok) toast('success', 'Review updated')
     else toast('error', 'Update failed — database not connected?')
+  }
+
+  const submitReply = async () => {
+    if (!replyTo || !replyText.trim()) return
+    setReplyBusy(true)
+    try {
+      const res = await fetch(`/api/reviews/${replyTo._id}/reply`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reply: replyText.trim() }),
+      })
+      if (res.ok) {
+        toast('success', 'Reply saved')
+        setReplyTo(null)
+        setReplyText('')
+      } else {
+        const d = await res.json().catch(() => ({}))
+        toast('error', d.error ?? 'Failed to save reply')
+      }
+    } catch {
+      toast('error', 'Network error')
+    } finally {
+      setReplyBusy(false)
+    }
+  }
+
+  const deleteReply = async (r: Review) => {
+    const res = await fetch(`/api/reviews/${r._id}/reply`, { method: 'DELETE' })
+    if (res.ok) toast('success', 'Reply removed')
+    else toast('error', 'Failed to remove reply')
   }
 
   return (
@@ -61,6 +96,18 @@ export default function AdminReviews() {
           },
           { key: 'createdAt', label: 'Date', render: (r) => <span className="text-xs text-slate-500">{r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : '—'}</span> },
           { key: 'approved', label: 'Status', render: (r) => <Badge color={r.approved ? 'green' : 'amber'}>{r.approved ? 'Approved' : 'Pending'}</Badge> },
+          {
+            key: 'reply',
+            label: 'Reply',
+            render: (r) => r.reply ? (
+              <div className="max-w-[200px]">
+                <p className="truncate text-xs text-emerald-400">{r.reply}</p>
+                <p className="text-[10px] text-slate-600">{r.repliedAt ? new Date(r.repliedAt).toLocaleDateString('en-IN') : ''}</p>
+              </div>
+            ) : (
+              <span className="text-xs text-slate-600">No reply</span>
+            ),
+          },
         ]}
         fetchUrl={(page, q) => `/api/reviews?all=1&q=${encodeURIComponent(q)}&page=${page}`}
         searchPlaceholder="Search reviews…"
@@ -74,6 +121,16 @@ export default function AdminReviews() {
               </button>
             )}
             <button
+              onClick={() => {
+                setReplyTo(r)
+                setReplyText(r.reply ?? '')
+              }}
+              className={`rounded-lg border p-2 transition-colors ${r.reply ? 'border-emerald-400/40 bg-emerald-500/10 text-emerald-300' : 'border-white/10 bg-white/5 text-slate-300 hover:border-emerald-400/40'}`}
+              title={r.reply ? 'Edit reply' : 'Reply to review'}
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+            </button>
+            <button
               onClick={() => update(r, { featured: !r.featured })}
               className={`rounded-lg border p-2 transition-colors ${r.featured ? 'border-amber-400/40 bg-amber-500/10 text-amber-300' : 'border-white/10 bg-white/5 text-slate-300 hover:border-amber-400/40'}`}
               title={r.featured ? 'Remove featured' : 'Feature on homepage'}
@@ -86,6 +143,64 @@ export default function AdminReviews() {
           </>
         )}
       />
+
+      {/* Reply Dialog */}
+      {replyTo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setReplyTo(null)}>
+          <div
+            className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0d0d10] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white">Reply to {replyTo.name}</h3>
+              <button onClick={() => setReplyTo(null)} className="text-slate-400 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <p className="text-xs text-slate-500">Review:</p>
+              <p className="mt-1 text-sm text-slate-300">&ldquo;{replyTo.text}&rdquo;</p>
+              <p className="mt-2 text-xs text-amber-400">{'★'.repeat(replyTo.rating)}</p>
+            </div>
+            <textarea
+              rows={4}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder="Write your reply to this review..."
+              className="mt-4 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-400/60"
+              autoFocus
+            />
+            <div className="mt-4 flex gap-3">
+              {replyTo.reply && (
+                <button
+                  onClick={async () => {
+                    await deleteReply(replyTo)
+                    setReplyTo(null)
+                    setReplyText('')
+                  }}
+                  className="rounded-full border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-xs font-bold text-rose-300 transition-colors hover:bg-rose-500/20"
+                >
+                  Remove Reply
+                </button>
+              )}
+              <div className="flex-1" />
+              <button
+                onClick={() => setReplyTo(null)}
+                className="rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-xs font-bold text-slate-300 transition-colors hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitReply}
+                disabled={replyBusy || !replyText.trim()}
+                className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-2.5 text-xs font-bold text-white transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {replyBusy ? 'Saving…' : 'Save Reply'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={toDelete !== null}

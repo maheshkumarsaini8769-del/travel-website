@@ -12,7 +12,7 @@ export default function CtaSection() {
   return (
     <section className="relative overflow-hidden py-28 sm:py-40">
       <div className="absolute inset-0">
-        <Image loading="lazy" decoding="async" src={ctaImages.cinematic} alt="" fill sizes="100vw" className="object-cover" aria-hidden="true" />
+        <Image loading="lazy" decoding="async" src={ctaImages.cinematic} alt="Sunsky Tourism travel experience — premium holiday packages" fill sizes="100vw" className="object-cover" aria-hidden="true" />
         <div className="absolute inset-0 bg-black/70" aria-hidden="true" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(249,115,22,0.18),transparent_60%)]" aria-hidden="true" />
       </div>

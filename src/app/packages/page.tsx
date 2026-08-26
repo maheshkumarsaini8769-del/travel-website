@@ -6,6 +6,7 @@ import TrustBadges from '@/components/ui/TrustBadges'
 import { ctaImages } from '@/data/images'
 import { whatsappPackage } from '@/lib/helpers'
 import { ArrowRight } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Travel Packages | Sunsky Tourism',
@@ -23,6 +24,7 @@ export default function PackagesPage() {
         description="Handcrafted packages across India and the world — filter by theme, duration or budget. Every one customisable to your dates."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Packages', url: '/packages' }]} />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

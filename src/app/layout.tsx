@@ -8,60 +8,42 @@ import PageTransition from '@/components/layout/PageTransition'
 import AnalyticsTracker from '@/components/analytics/Tracker'
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics'
 import JsonLd from '@/components/seo/JsonLd'
+import WarningSuppressor from '@/components/WarningSuppressor'
+import { getSettings } from '@/lib/settings'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Sunsky Tourism — Explore More. Worry Less.',
-    template: '%s | Sunsky Tourism',
-  },
-  description:
-    'Sunsky Tourism — travel made easy, memories made forever. Tour packages, flights, hotels, holiday plans and visa assistance from Sikar, Rajasthan. Explore Rajasthan, Kashmir, Goa, Dubai and more.',
-  keywords: [
-    'Sunsky Tourism',
-    'travel agency Sikar',
-    'tour packages Rajasthan',
-    'holiday packages',
-    'flight booking',
-    'hotel booking',
-    'visa assistance',
-    'Kashmir tour',
-    'Goa tour',
-    'Dubai tour',
-  ],
-  metadataBase: new URL('https://www.sunskytourism.in'),
-  alternates: {
-    canonical: '/',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  openGraph: {
-    title: 'Sunsky Tourism — Explore More. Worry Less.',
-    description:
-      'Travel made easy, memories made forever. Premium tour packages, flights, hotels and visa assistance.',
-    type: 'website',
-    url: 'https://www.sunskytourism.in',
-    siteName: 'Sunsky Tourism',
-    locale: 'en_IN',
-    images: [
-      {
-        url: 'https://www.sunskytourism.in/images/hero.jpg',
-        width: 1373,
-        height: 772,
-        alt: 'Sunsky Tourism — premium travel experiences',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Sunsky Tourism — Explore More. Worry Less.',
-    description:
-      'Premium tour packages, flights, hotels and visa assistance from Sikar, Rajasthan.',
-    images: ['https://www.sunskytourism.in/images/hero.jpg'],
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings()
+  const title = s.seo?.defaultTitle || 'Sunsky Tourism — Explore More. Worry Less.'
+  const desc = s.seo?.defaultDescription || 'Travel made easy, memories made forever.'
+  const brand = s.business?.brand || 'Sunsky Tourism'
+  return {
+    title: { default: title, template: `%s | ${brand}` },
+    description: desc,
+    keywords: ['Sunsky Tourism', 'travel agency', 'tour packages', 'holiday packages', 'flight booking', 'hotel booking', 'visa assistance'],
+    metadataBase: new URL('https://www.sunskytourism.in'),
+    alternates: { canonical: '/' },
+    robots: { index: true, follow: true },
+    openGraph: {
+      title,
+      description: desc,
+      type: 'website',
+      url: 'https://www.sunskytourism.in',
+      siteName: brand,
+      locale: 'en_IN',
+      images: [{ url: 'https://www.sunskytourism.in/images/hero.jpg', width: 1373, height: 772, alt: `${brand} — premium travel experiences` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: desc,
+      images: ['https://www.sunskytourism.in/images/hero.jpg'],
+    },
+    other: {
+      'google-site-verification': '',
+    },
+  }
 }
 
 export const viewport: Viewport = {
@@ -70,58 +52,72 @@ export const viewport: Viewport = {
   themeColor: '#070707',
 }
 
-const organizationJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'TravelAgency',
-  name: 'Sunsky Tourism',
-  url: 'https://www.sunskytourism.in',
-  logo: 'https://www.sunskytourism.in/images/logo.png',
-  image: 'https://www.sunskytourism.in/images/hero.jpg',
-  description:
-    'Travel agency in Sikar, Rajasthan — tour packages, flights, hotels, holiday plans and visa assistance.',
-  telephone: '+91-94620-18302',
-  email: 'sunskytourism.in@gmail.com',
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'W.No. 45, Industrial Area',
-    addressLocality: 'Sikar',
-    addressRegion: 'Rajasthan',
-    postalCode: '332001',
-    addressCountry: 'IN',
-  },
-  areaServed: ['IN', 'AE'],
-  priceRange: '₹₹',
-}
-
-const websiteJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: 'Sunsky Tourism',
-  url: 'https://www.sunskytourism.in',
-  description:
-    'Tour packages, flights, hotels, holiday plans and visa assistance from Sikar, Rajasthan.',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: 'https://www.sunskytourism.in/search?q={search_term_string}',
-    },
-    'query-input': 'required name=search_term_string',
-  },
-}
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const s = await getSettings()
+  const b = s.business
+  const seo = s.seo
+  const brand = b?.brand || 'Sunsky Tourism'
+  const desc = seo?.defaultDescription || 'Travel made easy, memories made forever.'
+
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TravelAgency',
+    name: brand,
+    url: 'https://www.sunskytourism.in',
+    logo: 'https://www.sunskytourism.in/images/logo.png',
+    image: 'https://www.sunskytourism.in/images/hero.jpg',
+    description: desc,
+    telephone: `+91${b?.phoneLinks?.[0] ?? '9462018302'}`,
+    email: b?.email || 'sunskytourism.in@gmail.com',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: b?.address || 'W.No. 45, Industrial Area, Sikar',
+      addressLocality: 'Sikar',
+      addressRegion: 'Rajasthan',
+      postalCode: '332001',
+      addressCountry: 'IN',
+    },
+    areaServed: ['IN', 'AE'],
+    priceRange: '₹₹',
+  }
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: brand,
+    url: 'https://www.sunskytourism.in',
+    description: desc,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://www.sunskytourism.in/search?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  }
+
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://www.sunskytourism.in" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="icon" href="/images/logo.png" type="image/png" sizes="any" />
+        <link rel="apple-touch-icon" href="/images/logo.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#f97316" />
+      </head>
       <body className={`${inter.className} bg-[#070707] text-slate-100 antialiased`}>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
         <MotionProvider>
           <AnalyticsTracker />
           <GoogleAnalytics />
+          <WarningSuppressor />
           <ScrollProgress />
           <SiteChrome>
             <PageTransition>{children}</PageTransition>

@@ -3,10 +3,57 @@
 import Link from 'next/link'
 import { Phone, MessageCircle, Mail, MapPin, Navigation } from 'lucide-react'
 import Image from 'next/image'
-import { contact, mapsUrl, waLink } from '@/data/contact'
+import { useEffect, useState } from 'react'
+import { contact as fallback, mapsUrl as fallbackMaps, waLink as fallbackWa } from '@/data/contact'
+
+interface BusinessSettings {
+  brand: string
+  tagline: string
+  phones: string[]
+  phoneLinks: string[]
+  whatsappPrimary: string
+  email: string
+  address: string
+  addressFull: string
+}
+
+interface SocialSettings {
+  facebook: string
+  instagram: string
+  youtube: string
+}
+
+interface FooterSettings {
+  about: string
+  copyright: string
+}
+
+interface Settings {
+  business: BusinessSettings
+  social: SocialSettings
+  footer: FooterSettings
+}
+
+function useSettings() {
+  const [s, setS] = useState<Settings | null>(null)
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((d) => setS(d))
+      .catch(() => {})
+  }, [])
+  return s
+}
 
 export default function Footer() {
   const year = new Date().getFullYear()
+  const s = useSettings()
+  const b = s?.business ?? fallback
+  const bObj = b as unknown as Record<string, string>
+  const lat = bObj.latitude || '27.6094'
+  const lng = bObj.longitude || '75.1399'
+  const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`
+  const waLink = (msg: string) => `https://wa.me/${b.whatsappPrimary ?? fallback.whatsappPrimary}?text=${encodeURIComponent(msg)}`
 
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-[#060606] text-slate-400">
@@ -16,21 +63,28 @@ export default function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2.5">
               <Image
-              src="/images/logo.webp"
-              alt="Sunsky Tourism logo"
-              width={1536}
-              height={1024}
-              sizes="40px"
-              className="h-10 w-10 shrink-0 rounded-full object-cover"
-            />
+                src="/images/logo.webp"
+                alt={`${b.brand ?? 'Sunsky Tourism'} logo`}
+                width={1536}
+                height={1024}
+                sizes="40px"
+                className="h-10 w-10 shrink-0 rounded-full object-cover"
+              />
               <span className="text-xl font-extrabold tracking-wide text-white">
                 SUNSKY<span className="text-orange-400"> TOURISM</span>
               </span>
             </Link>
-            <p className="mt-5 max-w-xs text-sm leading-relaxed">{contact.tagline}</p>
+            <p className="mt-5 max-w-xs text-sm leading-relaxed">{b.tagline ?? fallback.tagline}</p>
             <p className="mt-4 text-sm leading-relaxed text-slate-500">
-              {contact.address}
+              {b.address ?? fallback.address}
             </p>
+            {s?.social?.facebook && (
+              <div className="mt-4 flex gap-3">
+                {s.social.facebook && <a href={s.social.facebook} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-orange-400">Facebook</a>}
+                {s.social.instagram && <a href={s.social.instagram} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-orange-400">Instagram</a>}
+                {s.social.youtube && <a href={s.social.youtube} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-500 hover:text-orange-400">YouTube</a>}
+              </div>
+            )}
           </div>
 
           <nav aria-label="Quick links">
@@ -76,24 +130,21 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-white">Contact</h3>
             <ul className="mt-5 space-y-3.5 text-sm">
+              {(b.phones ?? fallback.phones).map((phone: string, i: number) => (
+                <li key={i}>
+                  <a href={`tel:${(b.phoneLinks ?? fallback.phoneLinks)[i]}`} className="flex items-center gap-2.5 transition-colors hover:text-orange-400">
+                    <Phone className="h-4 w-4 text-orange-400" /> {phone}
+                  </a>
+                </li>
+              ))}
               <li>
-                <a href={`tel:+91${contact.phoneLinks[0]}`} className="flex items-center gap-2.5 transition-colors hover:text-orange-400">
-                  <Phone className="h-4 w-4 text-orange-400" /> {contact.phones[0]}
-                </a>
-              </li>
-              <li>
-                <a href={`tel:+91${contact.phoneLinks[1]}`} className="flex items-center gap-2.5 transition-colors hover:text-orange-400">
-                  <Phone className="h-4 w-4 text-orange-400" /> {contact.phones[1]}
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${contact.email}`} className="flex items-center gap-2.5 break-all transition-colors hover:text-orange-400">
-                  <Mail className="h-4 w-4 shrink-0 text-orange-400" /> {contact.email}
+                <a href={`mailto:${b.email ?? fallback.email}`} className="flex items-center gap-2.5 break-all transition-colors hover:text-orange-400">
+                  <Mail className="h-4 w-4 shrink-0 text-orange-400" /> {b.email ?? fallback.email}
                 </a>
               </li>
               <li>
                 <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 transition-colors hover:text-orange-400">
-                  <MapPin className="h-4 w-4 shrink-0 text-orange-400" /> {contact.address}
+                  <MapPin className="h-4 w-4 shrink-0 text-orange-400" /> {b.address ?? fallback.address}
                 </a>
               </li>
             </ul>
@@ -107,7 +158,7 @@ export default function Footer() {
                 <MessageCircle className="h-4 w-4" /> WhatsApp
               </a>
               <a
-                href={`tel:+91${contact.phoneLinks[0]}`}
+                href={`tel:${(b.phoneLinks ?? fallback.phoneLinks)[0]}`}
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:border-orange-400/50"
               >
                 <Phone className="h-4 w-4" /> Call
@@ -126,7 +177,7 @@ export default function Footer() {
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 text-xs text-slate-500 sm:flex-row">
           <p>
-            © {year} {contact.brand}. All rights reserved.
+            © {year} {b.brand ?? 'Sunsky Tourism'}. All rights reserved.
           </p>
           <div className="flex items-center gap-5">
             <Link href="/terms" className="transition-colors hover:text-orange-400">

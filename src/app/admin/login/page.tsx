@@ -81,7 +81,7 @@ export default function AdminLogin() {
           <ArrowRight className="h-4 w-4" />
         </button>
         <p className="mt-5 text-center text-[11px] text-slate-500">
-          Default password: <code className="text-orange-400">sunsky@2026</code> (change it in .env.local)
+          Password from <code className="text-orange-400">.env.local</code> → ADMIN_PASSWORD
         </p>
       </form>
     </div>

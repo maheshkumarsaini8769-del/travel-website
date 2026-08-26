@@ -11,6 +11,7 @@ import BookingWidget from '@/components/packages/BookingWidget'
 import JsonLd from '@/components/seo/JsonLd'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { whatsappPackage } from '@/lib/helpers'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import { mapsUrl } from '@/data/contact'
 import {
   ArrowLeft,
@@ -56,6 +57,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ', '
     )} from ₹${pkg.pricePerPerson.toLocaleString('en-IN')} per person. Book with Sunsky Tourism, Sikar.`,
     alternates: { canonical: `/packages/${pkg.id}` },
+    openGraph: {
+      title: `${pkg.name} | Sunsky Tourism`,
+      description: `${pkg.tagline}. ${pkg.duration} tour from ₹${pkg.pricePerPerson.toLocaleString('en-IN')} per person.`,
+      url: `https://www.sunskytourism.in/packages/${pkg.id}`,
+      images: [{ url: `https://www.sunskytourism.in${pkg.image}`, width: 800, height: 600, alt: pkg.name }],
+    },
   }
 }
 
@@ -161,6 +168,14 @@ export default async function PackageDetailPage({ params }: Props) {
           </div>
         </div>
       </section>
+
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: '/' },
+          { name: 'Packages', url: '/packages' },
+          { name: pkg.name, url: `/packages/${pkg.id}` },
+        ]}
+      />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -330,7 +345,7 @@ export default async function PackageDetailPage({ params }: Props) {
             </div>
 
             <aside className="space-y-5">
-              <div className="lg:sticky lg:top-24">
+              <div className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-thin lg:scrollbar-thumb-white/10">
                 <BookingWidget pkg={pkg} />
                 <p className="mt-3 text-center text-[11px] text-slate-500">
                   Save {savings}% vs regular prices on this package.

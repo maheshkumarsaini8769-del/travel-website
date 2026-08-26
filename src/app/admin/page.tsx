@@ -27,7 +27,7 @@ interface DashboardData {
   devices: { device: string; count: number }[]
   browsers: { browser: string; count: number }[]
   osList: { os: string; count: number }[]
-  topPackages: { id: string; name: string; views: number; bookClicks: number; whatsapp: number; bookings: number; revenue: number }[]
+  topPackages: { id: string; name: string; views: number; bookClicks: number; whatsapp: number; bookings: number; revenue: number; cost: number; profit: number; costPerPerson: number }[]
   topSearches: { query: string; count: number; withResults: number; zeroResults: number }[]
   funnel: { visitors: number; packageViews: number; enquiries: number; bookings: number; confirmed: number }
   inventory: InventoryItem[]
@@ -94,17 +94,18 @@ export default function DashboardPage() {
       </div>
 
       {/* Today strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
         {[
           { label: 'Visitors today', value: String(data?.today.visitors ?? 0) },
           { label: 'Page views today', value: String(data?.today.pageViews ?? 0) },
           { label: 'Searches today', value: String(data?.today.searches ?? 0) },
           { label: 'Bookings today', value: String(data?.today.bookings ?? 0) },
-          { label: 'Revenue today', value: money(data?.today.revenue ?? 0) },
+          { label: 'Today income', value: money(data?.today.revenue ?? 0), color: 'text-emerald-400' },
+          { label: 'Today profit', value: money(data?.today.profit ?? 0), color: (data?.today.profit ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-orange-400/20 bg-orange-500/[0.06] px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-orange-300/80">{s.label}</p>
-            <p className="mt-1 text-lg font-extrabold text-white">{s.value}</p>
+            <p className={`mt-1 text-lg font-extrabold ${s.color ?? 'text-white'}`}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -191,7 +192,9 @@ export default function DashboardPage() {
                   <th className="py-2 pr-2 font-semibold">Book now</th>
                   <th className="py-2 pr-2 font-semibold">WhatsApp</th>
                   <th className="py-2 pr-2 font-semibold">Bookings</th>
-                  <th className="py-2 font-semibold">Revenue</th>
+                  <th className="py-2 pr-2 font-semibold">Revenue</th>
+                  <th className="py-2 pr-2 font-semibold">Cost</th>
+                  <th className="py-2 font-semibold">Profit</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,12 +205,14 @@ export default function DashboardPage() {
                     <td className="py-2.5 pr-2 text-slate-400">{p.bookClicks}</td>
                     <td className="py-2.5 pr-2 text-slate-400">{p.whatsapp}</td>
                     <td className="py-2.5 pr-2 text-slate-400">{p.bookings}</td>
-                    <td className="py-2.5 font-semibold text-emerald-300">{money(p.revenue)}</td>
+                    <td className="py-2.5 pr-2 font-semibold text-emerald-300">{money(p.revenue)}</td>
+                    <td className="py-2.5 pr-2 text-amber-400">{money(p.cost)}</td>
+                    <td className={`py-2.5 font-bold ${p.profit >= 0 ? 'text-emerald-300' : 'text-rose-400'}`}>{money(p.profit)}</td>
                   </tr>
                 ))}
                 {(data?.topPackages ?? []).length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-6 text-center text-slate-600">No package views yet</td>
+                    <td colSpan={8} className="py-6 text-center text-slate-600">No package views yet</td>
                   </tr>
                 )}
               </tbody>

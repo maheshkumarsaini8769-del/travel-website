@@ -6,6 +6,7 @@ import ReviewForm from '@/components/reviews/ReviewForm'
 import { ctaImages } from '@/data/images'
 import { contact, waLink } from '@/data/contact'
 import { MessageCircle, Phone } from 'lucide-react'
+import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
 export const metadata: Metadata = {
   title: 'Share Your Feedback | Sunsky Tourism',
@@ -23,6 +24,7 @@ export default function FeedbackPage() {
         description="Travelled with us? Tell the world — your review helps other travellers choose with confidence."
         image={ctaImages.cinematic}
       />
+      <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Feedback', url: '/feedback' }]} />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -50,7 +52,7 @@ export default function FeedbackPage() {
                   </div>
                 </a>
                 <a
-                  href={`tel:+91${contact.phoneLinks[0]}`}
+                  href={`tel:${contact.phoneLinks[0]}`}
                   className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-orange-400/40"
                 >
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-400">

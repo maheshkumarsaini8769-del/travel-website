@@ -266,6 +266,8 @@ export interface ReviewDoc {
   featured: boolean
   createdAt: number
   editedAt?: number
+  reply?: string
+  repliedAt?: number
 }
 
 export interface NotificationDoc {

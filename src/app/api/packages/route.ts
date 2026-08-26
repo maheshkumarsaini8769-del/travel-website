@@ -35,6 +35,7 @@ function sanitizePackage(body: Record<string, unknown>): TravelPackage {
     overview: String(body.overview ?? '').trim(),
     pricePerPerson: num(body.pricePerPerson, 0),
     originalPrice: num(body.originalPrice, 0),
+    cost: num(body.cost, 0),
     currency: String(body.currency ?? '₹').trim() || '₹',
     basis: String(body.basis ?? '').trim(),
     validity: String(body.validity ?? '').trim(),

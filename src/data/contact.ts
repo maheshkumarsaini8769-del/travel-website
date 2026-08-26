@@ -12,6 +12,8 @@ export const contact = {
   website: 'www.sunskytourism.in',
   address: 'W.No. 45, Industrial Area, Sikar',
   addressFull: 'W.No. 45, Industrial Area, Sikar, Rajasthan, India',
+  latitude: '27.6094',
+  longitude: '75.1399',
 }
 
 export const defaultWhatsAppMessage = 'Hello Sunsky Tourism, I want to know more about your travel packages.'

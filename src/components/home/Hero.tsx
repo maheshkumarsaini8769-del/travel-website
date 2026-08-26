@@ -48,7 +48,7 @@ export default function Hero() {
       <div className="absolute inset-0">
         <Image
           src={heroImages.luxury}
-          alt=""
+          alt="Explore More Worry Less — Sunsky Tourism luxury travel experience"
           fill
           sizes="100vw"
           priority
