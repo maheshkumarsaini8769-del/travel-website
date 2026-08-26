@@ -71,7 +71,7 @@ export default async function RootLayout({
     logo: 'https://www.sunskytourism.in/images/logo.png',
     image: 'https://www.sunskytourism.in/images/hero.jpg',
     description: desc,
-    telephone: `+91${b?.phoneLinks?.[0] ?? '9462018302'}`,
+    telephone: b?.phoneLinks?.[0] ?? '+919462018302',
     email: b?.email || 'sunskytourism.in@gmail.com',
     address: {
       '@type': 'PostalAddress',
@@ -81,8 +81,26 @@ export default async function RootLayout({
       postalCode: '332001',
       addressCountry: 'IN',
     },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: b?.latitude || '27.6094',
+      longitude: b?.longitude || '75.1399',
+    },
     areaServed: ['IN', 'AE'],
     priceRange: '₹₹',
+    sameAs: [
+      'https://www.facebook.com/sunskytourism',
+      'https://www.instagram.com/sunskytourism',
+      'https://www.youtube.com/@sunskytourism',
+    ],
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        opens: '09:00',
+        closes: '19:00',
+      },
+    ],
   }
 
   const websiteJsonLd = {
