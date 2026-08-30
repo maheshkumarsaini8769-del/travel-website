@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, MessageCircle, Phone } from 'lucide-react'
-import Link from 'next/link'
+import { MessageCircle, Phone } from 'lucide-react'
 import { DataTable } from '@/components/admin/DataTable'
 import { Badge, PageHeader } from '@/components/admin/ui'
 

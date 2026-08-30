@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect fill="#1e293b" width="800" height="600"/>
+  <rect fill="#334155" x="200" y="150" width="400" height="300" rx="8"/>
+  <rect fill="#475569" x="220" y="170" width="160" height="120" rx="4"/>
+  <rect fill="#475569" x="420" y="170" width="160" height="120" rx="4"/>
+  <rect fill="#475569" x="220" y="310" width="360" height="80" rx="4"/>
+  <text fill="#94a3b8" font-family="system-ui, sans-serif" font-size="24" text-anchor="middle" x="400" y="480">Hotel Image</text>
+</svg>

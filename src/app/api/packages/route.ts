@@ -64,7 +64,7 @@ function sanitizePackage(body: Record<string, unknown>): TravelPackage {
 }
 
 export async function POST(req: NextRequest) {
-  const denied = requireAdmin()
+  const denied = await requireAdmin()
   if (denied) return denied
 
   try {

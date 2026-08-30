@@ -142,7 +142,7 @@ export async function getHotelsPublic() {
       reviewCount: 0,
       priceFrom: d.roomTypes?.[0]?.price ?? 0,
       originalPrice: Math.round((d.roomTypes?.[0]?.price ?? 0) * 1.3),
-      image: d.images?.[0] || '/images/placeholder-hotel.webp',
+      image: d.images?.[0] || '/images/placeholder-hotel.svg',
       amenities: d.amenities || [],
       idealFor: [],
       distanceNote: '',

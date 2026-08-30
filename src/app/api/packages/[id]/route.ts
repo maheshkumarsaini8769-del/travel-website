@@ -62,7 +62,7 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
 }
 
 export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
-  const denied = requireAdmin()
+  const denied = await requireAdmin()
   if (denied) return denied
 
   try {
@@ -86,7 +86,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
 }
 
 export async function DELETE(_req: NextRequest, ctx: { params: { id: string } }) {
-  const denied = requireAdmin()
+  const denied = await requireAdmin()
   if (denied) return denied
 
   try {

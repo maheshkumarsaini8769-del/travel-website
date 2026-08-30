@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import PageHero from '@/components/ui/PageHero'
 import TiltCard from '@/components/ui/TiltCard'
-import { destinations, type DestinationCategory } from '@/data/destinations'
+import { getDestinations } from '@/lib/data'
+import { type DestinationCategory } from '@/data/destinations'
 import { ctaImages } from '@/data/images'
 import { getSettings, waUrl } from '@/lib/settings'
 import { ArrowUpRight, MapPin } from 'lucide-react'
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 const categoryOrder: DestinationCategory[] = ['Rajasthan', 'India', 'International']
 
 export default async function DestinationsPage() {
-  const settings = await getSettings()
+  const [settings, destinations] = await Promise.all([getSettings(), getDestinations()])
   const b = settings.business
   const grouped = categoryOrder
     .map((cat) => ({
