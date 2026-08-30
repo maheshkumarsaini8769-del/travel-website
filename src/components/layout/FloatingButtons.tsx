@@ -3,11 +3,15 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, Phone } from 'lucide-react'
-import { whatsappDefault, telPrimary } from '@/lib/helpers'
+import { useBusiness } from '@/lib/useSettings'
 
 export default function FloatingButtons() {
   const [waTip, setWaTip] = useState(false)
   const [callTip, setCallTip] = useState(false)
+  const b = useBusiness()
+
+  const whatsappUrl = `https://wa.me/${b.whatsappPrimary}?text=${encodeURIComponent('Hello Sunsky Tourism, I want to know more about your travel packages.')}`
+  const telUrl = `tel:${b.phoneLinks[0]}`
 
   return (
     <div className="fixed bottom-5 right-4 z-50 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
@@ -24,7 +28,7 @@ export default function FloatingButtons() {
         )}
       </AnimatePresence>
       <motion.a
-        href={telPrimary}
+        href={telUrl}
         onMouseEnter={() => setCallTip(true)}
         onMouseLeave={() => setCallTip(false)}
         whileHover={{ scale: 1.08 }}
@@ -49,7 +53,7 @@ export default function FloatingButtons() {
           )}
         </AnimatePresence>
         <motion.a
-          href={whatsappDefault}
+          href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
           onMouseEnter={() => setWaTip(true)}

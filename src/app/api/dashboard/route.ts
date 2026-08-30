@@ -23,6 +23,7 @@ function resolveRange(url: URL): Range {
   const to = Date.now()
   const startOfDay = dayStart(to)
   const rangeMap: Record<string, Range> = {
+    today: { from: startOfDay, to, prevFrom: startOfDay - 86_400_000, prevTo: startOfDay, label: 'Today' },
     '7d': { from: startOfDay - 6 * 86_400_000, to, prevFrom: startOfDay - 13 * 86_400_000, prevTo: startOfDay - 7 * 86_400_000, label: 'Last 7 days' },
     '30d': { from: startOfDay - 29 * 86_400_000, to, prevFrom: startOfDay - 59 * 86_400_000, prevTo: startOfDay - 30 * 86_400_000, label: 'Last 30 days' },
     '90d': { from: startOfDay - 89 * 86_400_000, to, prevFrom: startOfDay - 179 * 86_400_000, prevTo: startOfDay - 90 * 86_400_000, label: 'Last 90 days' },
@@ -163,6 +164,8 @@ export async function GET(req: NextRequest) {
   const revenue = payments.reduce((s, p) => s + p.amount, 0)
   const prevRevenue = prevPayments.reduce((s, p) => s + p.amount, 0)
   const pendingPayments = bookings.reduce((s, b) => s + Math.max(0, b.totalAmount - b.paidAmount), 0)
+  const completedBookings = bookings.filter((b) => b.status === 'completed')
+  const completedPayments = completedBookings.reduce((s, b) => s + (b.paidAmount ?? 0), 0)
 
   const pkgBookings: Record<string, { bookings: number; revenue: number }> = {}
   for (const b of bookings) {
@@ -297,6 +300,7 @@ export async function GET(req: NextRequest) {
     cancelledBookings: cancelled,
     revenue,
     pendingPayments,
+    completedPayments,
     deltas: {
       visitors: pct(sessions, 0) ?? (sessions > 0 ? null : 0),
       uniqueVisitors: pct(uniqueVisitors.size, prevUnique.size),
@@ -323,6 +327,8 @@ export async function GET(req: NextRequest) {
     const pkg = staticPackages.find((p) => p.id === pid)
     return s + (pkg?.cost ?? 0) * (b.travellers || 1)
   }, 0)
+  const todayCompletedBookings = todayBookings.filter((b) => b.status === 'completed')
+  const todayCompletedPayments = todayCompletedBookings.reduce((s, b) => s + (b.paidAmount ?? 0), 0)
   const today = {
     visitors: todayVisitors.size,
     pageViews: todayEvents.filter((e) => e.eventName === 'PAGE_VIEW').length,
@@ -331,6 +337,7 @@ export async function GET(req: NextRequest) {
     revenue: todayRevenue,
     cost: todayCost,
     profit: todayRevenue - todayCost,
+    completedPayments: todayCompletedPayments,
   }
 
   return Response.json({

@@ -1,40 +1,58 @@
 import { NextRequest } from 'next/server'
-import { requireAdmin, getCurrentAdmin, audit } from '@/lib/auth'
 import { couponsCollection } from '@/lib/db'
-import { sanitizeCoupon } from '@/lib/sanitize'
-import { parseListParams } from '@/lib/util'
+import { requireAdmin } from '@/lib/auth'
+import { parseListParams, regexEscape } from '@/lib/util'
 
 export async function GET(req: NextRequest) {
   const denied = await requireAdmin('coupons.view')
   if (denied) return denied
+
   const { page, limit, q } = parseListParams(req.nextUrl)
   try {
-    const docs = await couponsCollection().then((c) => c.find().toArray())
-    const filtered = q ? docs.filter((d) => d.code.toLowerCase().includes(q.toLowerCase())) : docs
-    const total = filtered.length
-    return Response.json({ items: filtered.slice((page - 1) * limit, (page - 1) * limit + limit), total })
+    const col = await couponsCollection()
+    const filter: Record<string, unknown> = {}
+    if (q) {
+      const rx = new RegExp(regexEscape(q), 'i')
+      filter.$or = [{ code: rx }]
+    }
+    const [items, total] = await Promise.all([
+      col.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).toArray(),
+      col.countDocuments(filter),
+    ])
+    return Response.json({ items, total })
   } catch {
-    return Response.json({ items: [], total: 0 })
+    return Response.json({ error: 'Database unavailable' }, { status: 503 })
   }
 }
 
 export async function POST(req: NextRequest) {
-  const denied = await requireAdmin('coupons.create')
+  const denied = await requireAdmin('coupons.manage')
   if (denied) return denied
-  const actor = await getCurrentAdmin()
-  try {
-    const body = await req.json()
-    const coupon = sanitizeCoupon(body)
-    if (!coupon.code || coupon.value <= 0) {
-      return Response.json({ error: 'Coupon code and a positive value are required' }, { status: 400 })
-    }
-    const col = await couponsCollection()
-    const existing = await col.findOne({ _id: coupon.code })
-    if (existing) return Response.json({ error: 'Coupon code already exists' }, { status: 409 })
-    await col.insertOne({ ...coupon, _id: coupon.code, usedCount: 0, createdAt: Date.now() })
-    if (actor) void audit(actor.username, 'coupon.created', 'coupons', coupon.code)
-    return Response.json({ ok: true }, { status: 201 })
-  } catch {
-    return Response.json({ error: 'Database unavailable' }, { status: 503 })
+
+  const body = await req.json()
+  const code = (body.code as string).trim().toUpperCase()
+
+  if (!code) return Response.json({ error: 'Code is required' }, { status: 400 })
+  if (!body.type || !body.value) return Response.json({ error: 'Type and value are required' }, { status: 400 })
+
+  const col = await couponsCollection()
+  const exists = await col.findOne({ code })
+  if (exists) return Response.json({ error: 'Coupon code already exists' }, { status: 409 })
+
+  const coupon = {
+    code,
+    type: body.type as 'percent' | 'fixed',
+    value: Number(body.value),
+    minBookingValue: body.minBookingValue ? Number(body.minBookingValue) : undefined,
+    maxDiscount: body.maxDiscount ? Number(body.maxDiscount) : undefined,
+    expiry: body.expiry ? new Date(body.expiry).getTime() : undefined,
+    usageLimit: body.usageLimit ? Number(body.usageLimit) : undefined,
+    perCustomerLimit: body.perCustomerLimit ? Number(body.perCustomerLimit) : undefined,
+    usedCount: 0,
+    active: body.active !== false,
+    createdAt: Date.now(),
   }
+
+  const result = await col.insertOne(coupon as any)
+  return Response.json({ ...coupon, _id: result.insertedId }, { status: 201 })
 }

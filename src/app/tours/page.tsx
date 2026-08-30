@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import PageHero from '@/components/ui/PageHero'
 import TourFilters from '@/components/tours/TourFilters'
 import { ctaImages } from '@/data/images'
-import { whatsappDefault } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import { MessageCircle } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
@@ -14,7 +14,9 @@ export const metadata: Metadata = {
   alternates: { canonical: '/tours' },
 }
 
-export default function ToursPage() {
+export default async function ToursPage() {
+  const settings = await getSettings()
+  const b = settings.business
   return (
     <>
       <PageHero
@@ -40,7 +42,7 @@ export default function ToursPage() {
               what you love and we&apos;ll craft it.
             </p>
             <Link
-              href={whatsappDefault}
+              href={waUrl(b.whatsappPrimary, 'Hello Sunsky Tourism, I want to know more about your travel packages.')}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5"

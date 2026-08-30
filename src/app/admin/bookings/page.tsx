@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Trash2, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { DataTable } from '@/components/admin/DataTable'
 import { Badge, ConfirmDialog, PageHeader, useToast } from '@/components/admin/ui'
@@ -36,6 +36,16 @@ interface PublicBooking {
 export default function AdminBookings() {
   const { toast } = useToast()
   const [toDelete, setToDelete] = useState<PublicBooking | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(() => setRefreshKey((k) => k + 1), 15000)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [autoRefresh])
 
   const setStatus = async (b: PublicBooking, status: StatusKey) => {
     const res = await fetch(`/api/bookings/${b._id}`, {
@@ -43,14 +53,38 @@ export default function AdminBookings() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     })
-    if (res.ok) toast('success', `Marked ${STATUS_BADGES[status].label.toLowerCase()}`)
-    else toast('error', 'Update failed')
+    if (res.ok) {
+      toast('success', `Marked ${STATUS_BADGES[status].label.toLowerCase()}`)
+      setRefreshKey((k) => k + 1)
+      try { localStorage.setItem('dashboard_refresh', String(Date.now())) } catch {}
+    } else {
+      toast('error', 'Update failed')
+    }
   }
 
   return (
     <div>
       <PageHeader title="Bookings" subtitle="Every confirmed and requested trip — update status right from the list" />
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          onClick={() => setRefreshKey((k) => k + 1)}
+          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Refresh
+        </button>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={autoRefresh}
+            onChange={(e) => setAutoRefresh(e.target.checked)}
+            className="h-4 w-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+          />
+          <span className="text-xs text-slate-400">Auto (15s)</span>
+        </label>
+      </div>
       <DataTable<PublicBooking>
+        refreshKey={refreshKey}
         columns={[
           {
             key: 'bookingId',

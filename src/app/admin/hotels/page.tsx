@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Pencil, Plus, Trash2, RefreshCw } from 'lucide-react'
 import { DataTable } from '@/components/admin/DataTable'
 import { Badge, Button, ConfirmDialog, Field, Modal, PageHeader, useToast } from '@/components/admin/ui'
 
@@ -9,6 +9,7 @@ interface Hotel {
   _id: string
   name: string
   location: string
+  destination: string
   stars: number
   amenities: string[]
   roomTypes: { name: string; price: number; capacity: number }[]
@@ -21,11 +22,21 @@ export default function AdminHotels() {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Hotel | null>(null)
   const [busy, setBusy] = useState(false)
-  const [form, setForm] = useState({ name: '', location: '', stars: 3, amenities: '', rooms: '', availability: true })
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [form, setForm] = useState({ name: '', location: '', destination: '', stars: 3, amenities: '', rooms: '', availability: true })
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(() => setRefreshKey((k) => k + 1), 15000)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [autoRefresh])
 
   const startNew = () => {
     setEditing(null)
-    setForm({ name: '', location: '', stars: 3, amenities: '', rooms: '', availability: true })
+    setForm({ name: '', location: '', destination: '', stars: 3, amenities: '', rooms: '', availability: true })
     setOpen(true)
   }
   const startEdit = (h: Hotel) => {
@@ -33,6 +44,7 @@ export default function AdminHotels() {
     setForm({
       name: h.name,
       location: h.location ?? '',
+      destination: h.destination ?? '',
       stars: h.stars ?? 3,
       amenities: (h.amenities ?? []).join(', '),
       rooms: (h.roomTypes ?? []).map((r) => `${r.name}|${r.price}|${r.capacity}`).join('\n'),
@@ -52,6 +64,7 @@ export default function AdminHotels() {
       const body = {
         name: form.name,
         location: form.location,
+        destination: form.destination,
         stars: Number(form.stars),
         amenities: form.amenities.split(',').map((s) => s.trim()).filter(Boolean),
         roomTypes,
@@ -65,6 +78,7 @@ export default function AdminHotels() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       toast('success', editing ? 'Hotel updated' : 'Hotel created')
       setOpen(false)
+      setRefreshKey((k) => k + 1)
     } catch {
       toast('error', 'Save failed — database not connected?')
     } finally {
@@ -83,7 +97,26 @@ export default function AdminHotels() {
           </Button>
         }
       />
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          onClick={() => setRefreshKey((k) => k + 1)}
+          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Refresh
+        </button>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={autoRefresh}
+            onChange={(e) => setAutoRefresh(e.target.checked)}
+            className="h-4 w-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+          />
+          <span className="text-xs text-slate-400">Auto (15s)</span>
+        </label>
+      </div>
       <DataTable<Hotel>
+        refreshKey={refreshKey}
         columns={[
           {
             key: 'name',
@@ -95,6 +128,7 @@ export default function AdminHotels() {
               </div>
             ),
           },
+          { key: 'destination', label: 'Destination', render: (h) => <span className="text-orange-300 text-xs font-bold">{h.destination || '—'}</span> },
           { key: 'stars', label: 'Stars', render: (h) => <span className="text-amber-400">{'★'.repeat(h.stars ?? 0) || '—'}</span> },
           { key: 'roomTypes', label: 'Rooms', render: (h) => <span className="text-slate-400">{(h.roomTypes ?? []).length} types</span> },
           { key: 'price', label: 'From', render: (h) => <span className="font-semibold text-slate-200">₹{(h.roomTypes?.[0]?.price ?? 0).toLocaleString('en-IN')}</span> },
@@ -120,6 +154,9 @@ export default function AdminHotels() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Hotel name">
             <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" />
+          </Field>
+          <Field label="Destination" hint="e.g. Rajasthan, Goa, Kashmir">
+            <input value={form.destination} onChange={(e) => setForm((f) => ({ ...f, destination: e.target.value }))} placeholder="Rajasthan" className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" />
           </Field>
           <Field label="Location">
             <input value={form.location} onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" />

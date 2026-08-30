@@ -5,10 +5,11 @@ import SectionHeading from '@/components/ui/SectionHeading'
 import StarRating from '@/components/ui/StarRating'
 import TrustBadges from '@/components/ui/TrustBadges'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
-import { hotels, formatHotelPrice } from '@/data/hotels'
+import { getHotelsPublic } from '@/lib/data'
+import { formatHotelPrice } from '@/data/hotels'
 import { ctaImages } from '@/data/images'
 import { waLink } from '@/data/contact'
-import { waHotelMessage } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import { BedDouble, Check, MapPin, Wallet } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
@@ -19,7 +20,9 @@ export const metadata: Metadata = {
   alternates: { canonical: '/hotels' },
 }
 
-export default function HotelsPage() {
+export default async function HotelsPage() {
+  const [settings, hotels] = await Promise.all([getSettings(), getHotelsPublic()])
+  const b = settings.business
   return (
     <>
       <PageHero
@@ -115,7 +118,7 @@ export default function HotelsPage() {
                         </p>
                       </div>
                       <a
-                        href={waLink(waHotelMessage(hotel.name))}
+                        href={waUrl(b.whatsappPrimary, `Hello Sunsky Tourism, I want to check availability and rates for ${hotel.name}. Please share details.`)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5"

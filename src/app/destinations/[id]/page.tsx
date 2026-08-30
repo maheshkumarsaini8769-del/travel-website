@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Image from 'next/image'
-import { destinations, destinationById } from '@/data/destinations'
+import { getDestinationBySlug, getDestinations } from '@/lib/data'
 import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
-import { whatsappDestination } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import JsonLd from '@/components/seo/JsonLd'
 import { ArrowLeft, CalendarDays, MapPin, Sparkles, MessageCircle, Navigation } from 'lucide-react'
@@ -16,12 +16,13 @@ interface Props {
   params: { id: string }
 }
 
-export function generateStaticParams() {
-  return destinations.map((d) => ({ id: d.id }))
+export async function generateStaticParams() {
+  const all = await getDestinations()
+  return all.map((d) => ({ id: d.id }))
 }
 
-export function generateMetadata({ params }: Props): Metadata {
-  const dest = destinationById(params.id)
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const dest = await getDestinationBySlug(params.id)
   if (!dest) return { title: 'Destination Not Found | Sunsky Tourism' }
   return {
     title: `${dest.name} | Sunsky Tourism`,
@@ -36,9 +37,15 @@ export function generateMetadata({ params }: Props): Metadata {
   }
 }
 
-export default function DestinationDetailPage({ params }: Props) {
-  const dest = destinationById(params.id)
+export default async function DestinationDetailPage({ params }: Props) {
+  const [dest, allDests, settings] = await Promise.all([
+    getDestinationBySlug(params.id),
+    getDestinations(),
+    getSettings(),
+  ])
   if (!dest) notFound()
+
+  const b = settings.business
 
 return (
     <>
@@ -170,7 +177,7 @@ return (
 
               <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-7">
                 <a
-                  href={whatsappDestination(dest.name)}
+                  href={waUrl(b.whatsappPrimary, `Hi Sunsky Tourism, I'm interested in visiting ${dest.name}. Please share itinerary and pricing details.`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 font-semibold text-white shadow-[0_10px_30px_rgba(37,211,102,0.3)] transition-all duration-300 hover:-translate-y-0.5"
@@ -221,7 +228,7 @@ return (
             title="Other destinations you might love."
           />
           <StaggerGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {destinations
+            {allDests
               .filter((d) => d.id !== dest.id)
               .slice(0, 3)
               .map((d) => (

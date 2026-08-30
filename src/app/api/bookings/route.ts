@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { requireAdmin, getCurrentAdmin, audit } from '@/lib/auth'
-import { bookingsCollection, customersCollection, paymentsCollection } from '@/lib/db'
+import { bookingsCollection, customersCollection, paymentsCollection, couponsCollection } from '@/lib/db'
 import { notify } from '@/lib/notify'
 import { sanitizeBooking } from '@/lib/sanitize'
 import { asNumber, asPhone, makeId, parseListParams, regexEscape } from '@/lib/util'
@@ -74,6 +74,14 @@ export async function POST(req: NextRequest) {
       `${booking.customer.name} — ${booking.packageRef.name || 'Enquiry'}`,
       '/admin/bookings'
     )
+
+    if (booking.couponCode) {
+      try {
+        const couponCol = await couponsCollection()
+        await couponCol.updateOne({ code: booking.couponCode }, { $inc: { usedCount: 1 } })
+      } catch {}
+    }
+
     return Response.json({ ok: true, bookingId }, { status: 201 })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

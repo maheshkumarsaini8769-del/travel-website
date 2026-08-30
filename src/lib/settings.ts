@@ -110,3 +110,12 @@ export async function saveSetting(key: string, value: SettingValue): Promise<voi
   const col = await settingsCollection()
   await col.updateOne({ _id: key }, { $set: { value, updatedAt: Date.now() } }, { upsert: true })
 }
+
+export function waUrl(phone: string, msg: string) {
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+}
+
+export async function getWhatsAppLink(msg: string) {
+  const s = await getSettings()
+  return waUrl(s.business.whatsappPrimary, msg)
+}

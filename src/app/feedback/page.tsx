@@ -5,6 +5,7 @@ import TrustBadges from '@/components/ui/TrustBadges'
 import ReviewForm from '@/components/reviews/ReviewForm'
 import { ctaImages } from '@/data/images'
 import { contact, waLink } from '@/data/contact'
+import { getSettings } from '@/lib/settings'
 import { MessageCircle, Phone } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
@@ -15,7 +16,9 @@ export const metadata: Metadata = {
   alternates: { canonical: '/feedback' },
 }
 
-export default function FeedbackPage() {
+export default async function FeedbackPage() {
+  const settings = await getSettings()
+  const b = settings.business
   return (
     <>
       <PageHero
@@ -52,7 +55,7 @@ export default function FeedbackPage() {
                   </div>
                 </a>
                 <a
-                  href={`tel:${contact.phoneLinks[0]}`}
+                  href={`tel:${b.phoneLinks[0]}`}
                   className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-colors hover:border-orange-400/40"
                 >
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-400">

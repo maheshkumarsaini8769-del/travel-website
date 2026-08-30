@@ -126,3 +126,32 @@ export async function getHotels(): Promise<HotelDoc[]> {
     return []
   }
 }
+
+export async function getHotelsPublic() {
+  const { hotels: staticHotels } = await import('@/data/hotels')
+  try {
+    const col = await hotelsCollection()
+    const docs = await col.find({ status: { $nin: ['draft'] } }).toArray()
+    const dbHotels = docs.map((d) => ({
+      id: d._id,
+      name: d.name,
+      city: d.location,
+      type: `${d.stars}-Star Hotel`,
+      description: d.description || '',
+      rating: d.stars,
+      reviewCount: 0,
+      priceFrom: d.roomTypes?.[0]?.price ?? 0,
+      originalPrice: Math.round((d.roomTypes?.[0]?.price ?? 0) * 1.3),
+      image: d.images?.[0] || '/images/placeholder-hotel.webp',
+      amenities: d.amenities || [],
+      idealFor: [],
+      distanceNote: '',
+    }))
+    const byId = new Map<string, typeof staticHotels[number]>()
+    for (const h of staticHotels) byId.set(h.id, h)
+    for (const h of dbHotels) byId.set(h.id, h as any)
+    return [...byId.values()]
+  } catch {
+    return staticHotels
+  }
+}

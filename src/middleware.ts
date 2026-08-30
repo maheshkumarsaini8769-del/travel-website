@@ -21,8 +21,13 @@ export function middleware(request: NextRequest) {
     target.protocol !== request.nextUrl.protocol ||
     target.pathname !== pathname
 
-  if (!needsRedirect) return NextResponse.next()
-  return NextResponse.redirect(target, 301)
+  if (needsRedirect) return NextResponse.redirect(target, 301)
+
+  const response = NextResponse.next()
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
+  return response
 }
 
 export const config = {

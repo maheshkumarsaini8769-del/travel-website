@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Pencil, Plus, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { DataTable } from '@/components/admin/DataTable'
 import { Badge, Button, ConfirmDialog, Field, Modal, PageHeader, useToast } from '@/components/admin/ui'
 
@@ -28,6 +28,11 @@ export default function AdminDestinations() {
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Dest | null>(null)
   const [busy, setBusy] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const coverInput = useRef<HTMLInputElement>(null)
+  const galleryInput = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     name: '',
     slug: '',
@@ -41,6 +46,54 @@ export default function AdminDestinations() {
     categories: 'India',
     featured: false,
   })
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(String(reader.result))
+        reader.onerror = () => reject(new Error('Read failed'))
+        reader.readAsDataURL(file)
+      })
+      const res = await fetch('/api/images', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ data: dataUrl, name: file.name }),
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const json = await res.json()
+      return `/api/images/${json.id}`
+    } catch {
+      return null
+    }
+  }
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = await uploadImage(file)
+    if (url) setForm((f) => ({ ...f, image: url }))
+    if (coverInput.current) coverInput.current.value = ''
+  }
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files?.length) return
+    const urls: string[] = []
+    for (const file of Array.from(files)) {
+      const url = await uploadImage(file)
+      if (url) urls.push(url)
+    }
+    if (urls.length) setForm((f) => ({ ...f, gallery: f.gallery ? f.gallery + ', ' + urls.join(', ') : urls.join(', ') }))
+    if (galleryInput.current) galleryInput.current.value = ''
+  }
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(() => setRefreshKey((k) => k + 1), 15000)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [autoRefresh])
 
   const startNew = () => {
     setEditing(null)
@@ -97,6 +150,7 @@ export default function AdminDestinations() {
       }
       toast('success', editing ? 'Destination updated' : 'Destination created')
       setOpen(false)
+      setRefreshKey((k) => k + 1)
     } catch (e) {
       toast('error', (e as Error).message.includes('HTTP 409') ? 'Slug already exists' : 'Save failed')
     } finally {
@@ -121,7 +175,27 @@ export default function AdminDestinations() {
         }
       />
 
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          onClick={() => setRefreshKey((k) => k + 1)}
+          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Refresh
+        </button>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={autoRefresh}
+            onChange={(e) => setAutoRefresh(e.target.checked)}
+            className="h-4 w-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+          />
+          <span className="text-xs text-slate-400">Auto (15s)</span>
+        </label>
+      </div>
+
       <DataTable<Dest>
+        refreshKey={refreshKey}
         columns={[
           {
             key: 'name',
@@ -183,12 +257,55 @@ export default function AdminDestinations() {
           </div>
           <div className="sm:col-span-2">
             <Field label="Cover image path">
-              <InputCls value={form.image} onChange={(v) => setForm((f) => ({ ...f, image: v }))} placeholder="/images/jaipur.jpg or full URL" />
+              <div className="flex gap-2">
+                <input
+                  ref={coverInput}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleCoverUpload}
+                />
+                <input
+                  className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-orange-500/50 focus:outline-none"
+                  value={form.image}
+                  onChange={(e) => setForm((f) => ({ ...f, image: e.target.value }))}
+                  placeholder="/images/jaipur.jpg or full URL"
+                />
+                <button
+                  type="button"
+                  onClick={() => coverInput.current?.click()}
+                  className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300 hover:bg-white/10"
+                >
+                  <Upload className="h-4 w-4" /> Upload
+                </button>
+              </div>
             </Field>
           </div>
           <div className="sm:col-span-2">
             <Field label="Gallery (comma separated)">
-              <TextareaCls rows={2} value={form.gallery} onChange={(v) => setForm((f) => ({ ...f, gallery: v }))} />
+              <div className="flex gap-2">
+                <input
+                  ref={galleryInput}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleGalleryUpload}
+                />
+                <textarea
+                  className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-orange-500/50 focus:outline-none"
+                  rows={2}
+                  value={form.gallery}
+                  onChange={(e) => setForm((f) => ({ ...f, gallery: e.target.value }))}
+                />
+                <button
+                  type="button"
+                  onClick={() => galleryInput.current?.click()}
+                  className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300 hover:bg-white/10"
+                >
+                  <Upload className="h-4 w-4" /> Upload
+                </button>
+              </div>
             </Field>
           </div>
           <Field label="Highlights (comma separated)">

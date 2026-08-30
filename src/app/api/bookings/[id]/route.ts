@@ -42,6 +42,27 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
       if (status === 'confirmed') {
         set.paymentStatus = existing.paidAmount > 0 ? 'partial' : 'pending'
       }
+      if (status === 'completed' && (existing.paidAmount ?? 0) <= 0 && (existing.totalAmount ?? 0) > 0) {
+        const paymentId = makeId('PAY')
+        const payments = await paymentsCollection()
+        await payments.insertOne({
+          _id: crypto.randomUUID(),
+          paymentId,
+          bookingId: existing.bookingId,
+          bookingLabel: existing.bookingId,
+          customerName: existing.customer.name,
+          amount: existing.totalAmount,
+          method: 'cash',
+          status: 'received',
+          transactionId: '',
+          notes: 'Auto-recorded on booking completion',
+          date: Date.now(),
+          createdAt: Date.now(),
+        })
+        set.paidAmount = existing.totalAmount
+        set.paymentStatus = 'paid'
+        void notify('payment', 'Payment auto-recorded', `${paymentId} — ₹${existing.totalAmount} (booking completed)`, '/admin/payments')
+      }
       if (actor) void audit(actor.username, 'booking.status_changed', 'bookings', ctx.params.id, { status })
     }
 

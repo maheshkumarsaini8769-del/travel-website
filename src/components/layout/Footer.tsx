@@ -54,6 +54,8 @@ export default function Footer() {
   const lng = bObj.longitude || '75.1399'
   const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`
   const waLink = (msg: string) => `https://wa.me/${b.whatsappPrimary ?? fallback.whatsappPrimary}?text=${encodeURIComponent(msg)}`
+  const footerAbout = s?.footer?.about || b.tagline || fallback.tagline
+  const footerCopyright = s?.footer?.copyright || `© ${year} ${b.brand ?? 'Sunsky Tourism'}. All rights reserved.`
 
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-[#060606] text-slate-400">
@@ -74,7 +76,7 @@ export default function Footer() {
                 SUNSKY<span className="text-orange-400"> TOURISM</span>
               </span>
             </Link>
-            <p className="mt-5 max-w-xs text-sm leading-relaxed">{b.tagline ?? fallback.tagline}</p>
+            <p className="mt-5 max-w-xs text-sm leading-relaxed">{footerAbout}</p>
             <p className="mt-4 text-sm leading-relaxed text-slate-500">
               {b.address ?? fallback.address}
             </p>
@@ -176,9 +178,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-7 text-xs text-slate-500 sm:flex-row">
-          <p>
-            © {year} {b.brand ?? 'Sunsky Tourism'}. All rights reserved.
-          </p>
+          <p>{footerCopyright}</p>
           <div className="flex items-center gap-5">
             <Link href="/terms" className="transition-colors hover:text-orange-400">
               Terms

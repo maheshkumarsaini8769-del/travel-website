@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { Building2, Compass, FileText, Home, Megaphone, PanelBottom, Share2, Search, Wallet, Shield, Eye, EyeOff } from 'lucide-react'
 import { Button, Field, PageHeader, Spinner, useToast } from '@/components/admin/ui'
 import type { SiteSettings } from '@/lib/settings'
 
 type SectionKey = keyof SiteSettings
+type EditorValue = string | number | boolean | string[]
 
 const TABS: { key: SectionKey | 'security'; label: string; icon: typeof Home }[] = [
   { key: 'business', label: 'Business', icon: Building2 },
@@ -19,7 +20,58 @@ const TABS: { key: SectionKey | 'security'; label: string; icon: typeof Home }[]
   { key: 'security', label: 'Security', icon: Shield },
 ]
 
-type EditorValue = string | number | boolean | string[]
+const FieldCtx = createContext<{ section: Record<string, EditorValue>; setField: (key: string, value: EditorValue) => void }>({ section: {}, setField: () => {} })
+
+function Input({ k, label, type = 'text', placeholder }: { k: string; label: string; type?: string; placeholder?: string }) {
+  const { section, setField } = useContext(FieldCtx)
+  return (
+    <Field label={label}>
+      <input
+        type={type}
+        value={(section[k] as string) ?? ''}
+        onChange={(e) => setField(k, type === 'number' ? Number(e.target.value) : e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
+      />
+    </Field>
+  )
+}
+
+function Area({ k, label, rows = 3 }: { k: string; label: string; rows?: number }) {
+  const { section, setField } = useContext(FieldCtx)
+  return (
+    <Field label={label}>
+      <textarea
+        rows={rows}
+        value={(section[k] as string) ?? ''}
+        onChange={(e) => setField(k, e.target.value)}
+        className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none transition-colors focus:border-orange-400/50"
+      />
+    </Field>
+  )
+}
+
+function ListField({ k, label }: { k: string; label: string }) {
+  const { section, setField } = useContext(FieldCtx)
+  return (
+    <Field label={label} hint="One per line">
+      <textarea
+        rows={3}
+        value={(section[k] as string[] | undefined)?.join('\n') ?? ''}
+        onChange={(e) => setField(k, e.target.value.split('\n').map((s) => s.trim()).filter(Boolean))}
+        className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none transition-colors focus:border-orange-400/50"
+      />
+    </Field>
+  )
+}
+
+function FieldGrid({ section, setField, children }: { section: Record<string, EditorValue>; setField: (key: string, value: EditorValue) => void; children: ReactNode }) {
+  return (
+    <FieldCtx.Provider value={{ section, setField }}>
+      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+    </FieldCtx.Provider>
+  )
+}
 
 export default function SettingsPage() {
   const { toast } = useToast()
@@ -48,7 +100,7 @@ export default function SettingsPage() {
   const isSecurity = tab === 'security'
   const section = isSecurity ? {} : (settings[tab as SectionKey] as unknown as Record<string, EditorValue>)
 
-  const set = (key: string, value: EditorValue) => {
+  const setField = (key: string, value: EditorValue) => {
     if (isSecurity) return
     setSettings((s) => (s ? ({ ...s, [tab]: { ...(s[tab as SectionKey] as Record<string, unknown>), [key]: value } } as SiteSettings) : s))
     setSavedMsg('')
@@ -71,40 +123,6 @@ export default function SettingsPage() {
       setBusy(false)
     }
   }
-
-  const Input = ({ k, label, type = 'text', placeholder }: { k: string; label: string; type?: string; placeholder?: string }) => (
-    <Field label={label}>
-      <input
-        type={type}
-        value={section[k] as string}
-        onChange={(e) => set(k, type === 'number' ? Number(e.target.value) : e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
-      />
-    </Field>
-  )
-
-  const Area = ({ k, label, rows = 3 }: { k: string; label: string; rows?: number }) => (
-    <Field label={label}>
-      <textarea
-        rows={rows}
-        value={section[k] as string}
-        onChange={(e) => set(k, e.target.value)}
-        className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none transition-colors focus:border-orange-400/50"
-      />
-    </Field>
-  )
-
-  const ListField = ({ k, label }: { k: string; label: string }) => (
-    <Field label={label} hint="One per line">
-      <textarea
-        rows={3}
-        value={(section[k] as string[] | undefined)?.join('\n') ?? ''}
-        onChange={(e) => set(k, e.target.value.split('\n').map((s) => s.trim()).filter(Boolean))}
-        className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none transition-colors focus:border-orange-400/50"
-      />
-    </Field>
-  )
 
   return (
     <div>
@@ -137,7 +155,7 @@ export default function SettingsPage() {
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
         {tab === 'business' && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <FieldGrid section={section} setField={setField}>
             <Input k="brand" label="Brand name" />
             <Input k="tagline" label="Tagline" />
             <Input k="headline" label="Headline" />
@@ -157,11 +175,11 @@ export default function SettingsPage() {
             <Input k="whatsappSecondary" label="Secondary WhatsApp number" />
             <Input k="latitude" label="Google Maps Latitude" placeholder="e.g. 27.6094" />
             <Input k="longitude" label="Google Maps Longitude" placeholder="e.g. 75.1399" />
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'hero' && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <FieldGrid section={section} setField={setField}>
             <Input k="eyebrow" label="Eyebrow" />
             <Input k="title1" label="Headline part 1" />
             <Input k="title2" label="Headline part 2" />
@@ -170,54 +188,54 @@ export default function SettingsPage() {
             <div className="sm:col-span-2">
               <Area k="description" label="Description" rows={3} />
             </div>
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'about' && (
-          <div className="grid gap-4">
+          <FieldGrid section={section} setField={setField}>
             <Input k="title" label="Title" />
             <Area k="description" label="Description" rows={6} />
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'contact' && (
-          <div className="grid gap-4">
+          <FieldGrid section={section} setField={setField}>
             <Input k="headline" label="Headline" />
             <Area k="subheadline" label="Sub-headline" rows={2} />
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'footer' && (
-          <div className="grid gap-4">
+          <FieldGrid section={section} setField={setField}>
             <Area k="about" label="About text" rows={5} />
             <Input k="copyright" label="Copyright line" />
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'social' && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <FieldGrid section={section} setField={setField}>
             <Input k="facebook" label="Facebook URL" />
             <Input k="instagram" label="Instagram URL" />
             <Input k="youtube" label="YouTube URL" />
             <Input k="whatsapp" label="WhatsApp URL" />
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'seo' && (
-          <div className="grid gap-4">
+          <FieldGrid section={section} setField={setField}>
             <Input k="defaultTitle" label="Default page title" />
             <Area k="defaultDescription" label="Default meta description" rows={3} />
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'booking' && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <FieldGrid section={section} setField={setField}>
             <Input k="advancePercent" label="Advance payment %" type="number" />
             <Input k="minAdvanceDays" label="Min advance days before travel" type="number" />
             <div className="sm:col-span-2">
               <Area k="cancellationPolicy" label="Cancellation policy text" rows={4} />
             </div>
-          </div>
+          </FieldGrid>
         )}
 
         {tab === 'security' && <SecurityTab />}

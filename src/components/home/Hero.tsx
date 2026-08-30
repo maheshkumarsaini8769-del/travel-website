@@ -10,7 +10,7 @@ import TextReveal from '@/components/ui/TextReveal'
 import MagneticButton from '@/components/ui/MagneticButton'
 import PremiumButton from '@/components/ui/PremiumButton'
 import { heroImages } from '@/data/images'
-import { whatsappDefault } from '@/lib/helpers'
+import { useSettings } from '@/lib/useSettings'
 
 const TravelScene = dynamic(() => import('@/components/3d/TravelScene'), {
   ssr: false,
@@ -38,6 +38,10 @@ function isLowEndDevice() {
 
 export default function Hero() {
   const [mode, setMode] = useState<'checking' | 'globe' | 'static'>('checking')
+  const s = useSettings()
+  const b = s.business
+  const h = s.hero
+  const whatsappUrl = `https://wa.me/${b.whatsappPrimary}?text=${encodeURIComponent('Hello Sunsky Tourism, I want to know more about your travel packages.')}`
 
   useEffect(() => {
     setMode(isLowEndDevice() ? 'static' : 'globe')
@@ -71,7 +75,7 @@ export default function Hero() {
           >
             <span className="inline-flex items-center gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-[0.35em] text-orange-400">
               <span className="h-px w-8 bg-orange-500/60" aria-hidden="true" />
-              Sunsky Tourism
+              {h.eyebrow}
             </span>
           </motion.div>
 
@@ -88,7 +92,7 @@ export default function Hero() {
 
           <TextReveal
             as="h1"
-            text="Explore More. Worry Less."
+            text={`${h.title1} ${h.title2}`}
             delay={0.4}
             className="mt-4 text-[clamp(2.8rem,8vw,6.5rem)] font-bold leading-[0.98] tracking-tight text-white"
           />
@@ -99,8 +103,7 @@ export default function Hero() {
             transition={{ delay: 0.8, duration: 0.7 }}
             className="mx-auto mt-7 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg lg:mx-0"
           >
-            Premium tour packages, flights, hotels and visa assistance — planned end to end, so you
-            just arrive and make memories.
+            {h.description}
           </motion.p>
 
           <motion.div
@@ -111,14 +114,14 @@ export default function Hero() {
           >
             <MagneticButton>
               <PremiumButton href="/packages" size="lg">
-                Explore Packages
+                {h.primaryCta}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </PremiumButton>
             </MagneticButton>
             <MagneticButton>
-              <PremiumButton href={whatsappDefault} external size="lg" variant="secondary">
+              <PremiumButton href={whatsappUrl} external size="lg" variant="secondary">
                 <MessageCircle className="h-4 w-4 text-[#25D366]" />
-                Plan Your Trip
+                {h.secondaryCta}
               </PremiumButton>
             </MagneticButton>
           </motion.div>

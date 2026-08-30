@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import PageHero from '@/components/ui/PageHero'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { ctaImages } from '@/data/images'
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
   description: 'Read all verified traveller reviews from Sunsky Tourism — real experiences from real travellers.',
   alternates: { canonical: '/reviews' },
 }
+
+export const dynamic = 'force-dynamic'
 
 export default function ReviewsPage() {
   return (
@@ -29,7 +32,9 @@ export default function ReviewsPage() {
             title="Verified traveller experiences."
             description="Read what our travellers have to say about their trips with Sunsky Tourism."
           />
-          <AllReviewsList />
+          <Suspense fallback={<div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-400 border-t-transparent" /></div>}>
+            <AllReviewsList />
+          </Suspense>
         </div>
       </section>
     </>

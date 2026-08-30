@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Suspense } from 'react'
 import { searchItems, groupByType, typeLabel, type SearchItem } from '@/lib/search'
 import { getPackages } from '@/lib/data'
-import { whatsappDefault } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import { Search, ArrowUpRight, MessageCircle, Compass, Clock3, Briefcase, BookOpen } from 'lucide-react'
 
 interface Props {
@@ -25,7 +25,8 @@ const typeIcon: Record<SearchItem['type'], typeof Compass> = {
 }
 
 async function SearchResults({ query }: { query: string }) {
-  const pkgs = await getPackages()
+  const [pkgs, settings] = await Promise.all([getPackages(), getSettings()])
+  const b = settings.business
   const items = searchItems(query, pkgs)
   const groups = groupByType(items)
 
@@ -51,7 +52,7 @@ async function SearchResults({ query }: { query: string }) {
           listed on the site.
         </p>
         <a
-          href={whatsappDefault}
+          href={waUrl(b.whatsappPrimary, 'Hello Sunsky Tourism, I want to know more about your travel packages.')}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-7 py-3.5 font-semibold text-white transition-all duration-300 hover:-translate-y-0.5"

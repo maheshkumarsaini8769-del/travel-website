@@ -7,7 +7,7 @@ import TiltCard from '@/components/ui/TiltCard'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { services } from '@/data/services'
 import { ctaImages } from '@/data/images'
-import { whatsappDefault } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import { Check, ArrowRight } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
@@ -18,7 +18,9 @@ export const metadata: Metadata = {
   alternates: { canonical: '/services' },
 }
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const settings = await getSettings()
+  const b = settings.business
   return (
     <>
       <PageHero
@@ -92,7 +94,7 @@ export default function ServicesPage() {
                 </p>
               </div>
               <Link
-                href={whatsappDefault}
+                href={waUrl(b.whatsappPrimary, 'Hello Sunsky Tourism, I want to know more about your travel packages.')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5"

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
@@ -8,7 +9,7 @@ import SectionHeading from '@/components/ui/SectionHeading'
 import SpotlightCard from '@/components/ui/SpotlightCard'
 import TiltCard from '@/components/ui/TiltCard'
 import { Reveal, StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
-import { destinations } from '@/data/destinations'
+import { destinations as fallbackDestinations, type Destination } from '@/data/destinations'
 
 const bento = [
   { id: 'jaipur', name: 'Rajasthan', className: 'lg:col-span-2 lg:row-span-2 h-[380px] lg:h-full', big: true },
@@ -20,6 +21,15 @@ const bento = [
 ]
 
 export default function DestinationsShowcase() {
+  const [destinations, setDestinations] = useState<Destination[]>(fallbackDestinations)
+
+  useEffect(() => {
+    fetch('/api/destinations', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d) && d.length > 0) setDestinations(d) })
+      .catch(() => {})
+  }, [])
+
   return (
     <section className="relative py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

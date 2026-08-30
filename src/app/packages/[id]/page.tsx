@@ -10,7 +10,7 @@ import StarRating from '@/components/ui/StarRating'
 import BookingWidget from '@/components/packages/BookingWidget'
 import JsonLd from '@/components/seo/JsonLd'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
-import { whatsappPackage } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import { mapsUrl } from '@/data/contact'
 import {
@@ -69,6 +69,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PackageDetailPage({ params }: Props) {
   const pkg = await getPackageById(params.id)
   if (!pkg) notFound()
+
+  const settings = await getSettings()
+  const b = settings.business
 
   const extra = destinationExtras[extraKeyByRegion[pkg.region] ?? 'international']
   const reach = extra ? [extra.howToReach.air, extra.howToReach.rail, extra.howToReach.road] : []
@@ -369,7 +372,7 @@ export default async function PackageDetailPage({ params }: Props) {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href={whatsappPackage(pkg.name)}
+                href={waUrl(b.whatsappPrimary, `Hello Sunsky Tourism, I want details about the ${pkg.name}.`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-7 py-3.5 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5"

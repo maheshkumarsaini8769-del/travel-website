@@ -73,6 +73,7 @@ export function DataTable<T extends { id?: string; _id?: string }>({
   emptyTitle,
   emptyHint,
   defaultLimit = 20,
+  refreshKey,
 }: {
   columns: Column<T>[]
   fetchUrl: (page: number, q: string, extra: string) => string
@@ -82,8 +83,13 @@ export function DataTable<T extends { id?: string; _id?: string }>({
   emptyTitle?: string
   emptyHint?: string
   defaultLimit?: number
+  refreshKey?: number
 }) {
   const { items, total, page, setPage, q, setQ, reload, loading, error, limit } = useListData<T>(fetchUrl, extra ?? '', defaultLimit)
+
+  useEffect(() => {
+    if (refreshKey) void reload()
+  }, [refreshKey, reload])
 
   return (
     <div>

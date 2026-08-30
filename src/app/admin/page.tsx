@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 import {
-  CalendarCheck, Eye, Globe, MousePointerClick, Phone, Receipt, Search, ShoppingBag, TrendingUp, Users, Wallet, XCircle, MessageCircle, Hourglass, Boxes,
+  CalendarCheck, Eye, Globe, MousePointerClick, Phone, Receipt, Search, ShoppingBag, TrendingUp, Users, Wallet, XCircle, MessageCircle, Hourglass, Boxes, RefreshCw,
 } from 'lucide-react'
 import Link from 'next/link'
 import { KpiCard, TrendChart, SimpleBar, Donut, Funnel, ChartCard } from '@/components/admin/charts'
@@ -35,6 +35,7 @@ interface DashboardData {
 }
 
 const RANGES = [
+  { id: 'today', label: 'Today' },
   { id: '7d', label: '7 days' },
   { id: '30d', label: '30 days' },
   { id: '90d', label: '90 days' },
@@ -46,14 +47,19 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const loadRef = useRef<() => Promise<void>>()
+  const [lastRefresh, setLastRefresh] = useState(0)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/dashboard?range=${range}`)
+      const res = await fetch(`/api/dashboard?range=${range}`, { cache: 'no-store' })
       if (!res.ok) throw new Error('failed')
       setData((await res.json()) as DashboardData)
+      setLastRefresh(Date.now())
     } catch {
       setError('Dashboard could not be loaded. If the database is not connected yet, whitelist your IP in Atlas and seed the data.')
     } finally {
@@ -61,9 +67,19 @@ export default function DashboardPage() {
     }
   }, [range])
 
+  loadRef.current = load
+
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    if (autoRefresh) {
+      intervalRef.current = setInterval(() => { loadRef.current?.() }, 15000)
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [autoRefresh])
 
   if (loading && !data) return <Spinner label="Loading dashboard…" />
   if (error && !data) return <ErrorState message={error} onRetry={() => void load()} />
@@ -80,28 +96,48 @@ export default function DashboardPage() {
             {data?.range.label} · live first-party analytics
           </p>
         </div>
-        <div className="flex gap-1 rounded-full border border-white/10 bg-white/5 p-1">
-          {RANGES.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => setRange(r.id)}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${range === r.id ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'}`}
-            >
-              {r.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => void load()}
+            disabled={loading}
+            className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoRefresh}
+              onChange={(e) => setAutoRefresh(e.target.checked)}
+              className="h-4 w-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+            />
+            <span className="text-xs text-slate-400">Auto (30s)</span>
+          </label>
+          <div className="flex gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+            {RANGES.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRange(r.id)}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${range === r.id ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'}`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Today strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
         {[
           { label: 'Visitors today', value: String(data?.today.visitors ?? 0) },
           { label: 'Page views today', value: String(data?.today.pageViews ?? 0) },
           { label: 'Searches today', value: String(data?.today.searches ?? 0) },
           { label: 'Bookings today', value: String(data?.today.bookings ?? 0) },
           { label: 'Today income', value: money(data?.today.revenue ?? 0), color: 'text-emerald-400' },
-          { label: 'Today profit', value: money(data?.today.profit ?? 0), color: (data?.today.profit ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400' },
+          { label: 'Today cost', value: money(data?.today.cost ?? 0), color: 'text-rose-400' },
+          { label: 'Complete payments', value: money(data?.today.completedPayments ?? 0), color: 'text-emerald-400' },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-orange-400/20 bg-orange-500/[0.06] px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-orange-300/80">{s.label}</p>
@@ -125,6 +161,7 @@ export default function DashboardPage() {
         <KpiCard label="Confirmed" value={k.confirmedBookings?.toLocaleString() ?? '0'} delta={deltas.confirmedBookings} icon={<TrendingUp className="h-4 w-4" />} />
         <KpiCard label="Cancelled" value={k.cancelledBookings?.toLocaleString() ?? '0'} icon={<XCircle className="h-4 w-4" />} />
         <KpiCard label="Revenue" value={money(k.revenue ?? 0)} delta={deltas.revenue} icon={<Wallet className="h-4 w-4" />} />
+        <KpiCard label="Completed payments" value={money(k.completedPayments ?? 0)} icon={<Receipt className="h-4 w-4" />} />
         <KpiCard label="Pending payments" value={money(k.pendingPayments ?? 0)} icon={<Receipt className="h-4 w-4" />} />
         <KpiCard label="Phone clicks" value="—" icon={<Phone className="h-4 w-4" />} />
         <KpiCard label="Email clicks" value="—" icon={<Globe className="h-4 w-4" />} />

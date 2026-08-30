@@ -28,6 +28,8 @@ export function sanitizeBooking(body: Record<string, unknown>) {
     children,
     totalAmount: Math.max(0, asNumber(body.totalAmount)),
     paidAmount: Math.max(0, asNumber(body.paidAmount)),
+    couponCode: asOptionalString(body?.couponCode, 30),
+    couponDiscount: Math.max(0, Math.round(asNumber(body?.couponDiscount))),
     notes: asOptionalString(body?.notes, 2000),
   }
 }

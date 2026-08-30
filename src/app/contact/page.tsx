@@ -7,7 +7,7 @@ import SectionHeading from '@/components/ui/SectionHeading'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { contact, mapsUrl } from '@/data/contact'
 import { ctaImages } from '@/data/images'
-import { telPrimary, telSecondary } from '@/lib/helpers'
+import { getSettings } from '@/lib/settings'
 import { Phone, Mail, MapPin, Clock, UserRound } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
@@ -51,44 +51,48 @@ export const metadata: Metadata = {
   alternates: { canonical: '/contact' },
 }
 
-const cards = [
-  {
-    icon: UserRound,
-    label: 'Proprietor',
-    value: contact.proprietor,
-    sub: contact.proprietorTitle,
-    href: null as string | null,
-  },
-  {
-    icon: Phone,
-    label: 'Call Us',
-    value: contact.phones[0],
-    sub: contact.phones[1],
-    href: telPrimary,
-  },
-  {
-    icon: Mail,
-    label: 'Email Us',
-    value: contact.email,
-    sub: contact.website,
-    href: `mailto:${contact.email}`,
-  },
-  {
-    icon: MapPin,
-    label: 'Visit Us',
-    value: contact.address,
-    sub: 'Open all days',
-    href: mapsUrl,
-  },
-]
+export default async function ContactPage() {
+  const settings = await getSettings()
+  const b = settings.business
+  const c = settings.contact
 
-export default function ContactPage() {
+  const cards = [
+    {
+      icon: UserRound,
+      label: 'Proprietor',
+      value: contact.proprietor,
+      sub: contact.proprietorTitle,
+      href: null as string | null,
+    },
+    {
+      icon: Phone,
+      label: 'Call Us',
+      value: b.phones[0],
+      sub: b.phones[1],
+      href: `tel:${b.phoneLinks[0]}`,
+    },
+    {
+      icon: Mail,
+      label: 'Email Us',
+      value: b.email,
+      sub: contact.website,
+      href: `mailto:${b.email}`,
+    },
+    {
+      icon: MapPin,
+      label: 'Visit Us',
+      value: b.address,
+      sub: 'Open all days',
+      href: mapsUrl,
+    },
+  ]
+
   return (
     <>
       <PageHero
         eyebrow="Contact Us"
-        title="Let's plan your journey."
-        description="Call, WhatsApp, email or walk in — we are happy to help at every step of your travel planning."
+        title={c.headline}
+        description={c.subheadline}
         image={ctaImages.cinematic}
       />
       <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Contact', url: '/contact' }]} />
@@ -155,7 +159,7 @@ export default function ContactPage() {
                     </span>
                     <div>
                       <p className="font-semibold text-white">Sunsky Tourism</p>
-                      <p className="mt-0.5 text-sm leading-relaxed text-slate-400">{contact.addressFull}</p>
+                      <p className="mt-0.5 text-sm leading-relaxed text-slate-400">{b.addressFull}</p>
                     </div>
                   </div>
                 </div>

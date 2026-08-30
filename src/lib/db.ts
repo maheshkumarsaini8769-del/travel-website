@@ -60,6 +60,7 @@ async function ensureIndexes(db: Db): Promise<void> {
       db.collection('packages').createIndexes([{ key: { updatedAt: -1 } }]),
       db.collection('destinations').createIndexes([{ key: { status: 1 } }]),
       db.collection('sessions').createIndexes([{ key: { lastActivityAt: -1 } }]),
+      db.collection('coupons').createIndexes([{ key: { code: 1 }, unique: true }, { key: { active: 1 } }]),
     ])
   } catch {
     // indexes are best-effort; connection/whitelist issues must not break reads

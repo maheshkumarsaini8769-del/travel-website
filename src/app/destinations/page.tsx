@@ -5,7 +5,7 @@ import PageHero from '@/components/ui/PageHero'
 import TiltCard from '@/components/ui/TiltCard'
 import { destinations, type DestinationCategory } from '@/data/destinations'
 import { ctaImages } from '@/data/images'
-import { whatsappDestination } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import { ArrowUpRight, MapPin } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
@@ -18,7 +18,9 @@ export const metadata: Metadata = {
 
 const categoryOrder: DestinationCategory[] = ['Rajasthan', 'India', 'International']
 
-export default function DestinationsPage() {
+export default async function DestinationsPage() {
+  const settings = await getSettings()
+  const b = settings.business
   const grouped = categoryOrder
     .map((cat) => ({
       category: cat,
@@ -92,7 +94,7 @@ export default function DestinationsPage() {
               we will suggest the perfect destination for you.
             </p>
             <Link
-              href={whatsappDestination('your next destination')}
+              href={waUrl(b.whatsappPrimary, `Hi Sunsky Tourism, I'm interested in visiting your next destination. Please share details.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5"

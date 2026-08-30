@@ -7,7 +7,7 @@ import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import ParallaxImage from '@/components/ui/ParallaxImage'
 import { aboutImages, ctaImages } from '@/data/images'
 import { contact } from '@/data/contact'
-import { whatsappDefault } from '@/lib/helpers'
+import { getSettings } from '@/lib/settings'
 import { Award, Users, MapPin, HeartHandshake } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 
@@ -48,13 +48,17 @@ const stats = [
   { value: 24, suffix: '/7', label: 'Trip Support' },
 ]
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const settings = await getSettings()
+  const b = settings.business
+  const a = settings.about
+  const whatsappUrl = `https://wa.me/${b.whatsappPrimary}?text=${encodeURIComponent('Hello Sunsky Tourism, I want to know more about your travel packages.')}`
   return (
     <>
       <PageHero
         eyebrow="About Sunsky Tourism"
-        title="Travel made easy, memories made forever."
-        description="We are a Sikar-based travel agency that believes a great trip is 10% destination and 90% planning."
+        title={a.title}
+        description={a.description}
         image={ctaImages.about}
       />
       <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'About', url: '/about' }]} />
@@ -162,7 +166,7 @@ export default function AboutPage() {
             description={`W.No. 45, Industrial Area, Sikar — call us at ${contact.phones[0]} or message on WhatsApp.`}
           />
           <a
-            href={whatsappDefault}
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5"

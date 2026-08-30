@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import { guides, guideBySlug } from '@/data/guides'
 import SectionHeading from '@/components/ui/SectionHeading'
-import { whatsappPackage } from '@/lib/helpers'
+import { getSettings, waUrl } from '@/lib/settings'
 import JsonLd from '@/components/seo/JsonLd'
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Lightbulb, MessageCircle } from 'lucide-react'
 
@@ -26,9 +26,12 @@ export function generateMetadata({ params }: Props): Metadata {
   }
 }
 
-export default function GuideDetailPage({ params }: Props) {
+export default async function GuideDetailPage({ params }: Props) {
   const guide = guideBySlug(params.slug)
   if (!guide) notFound()
+
+  const settings = await getSettings()
+  const b = settings.business
 
   const related = guides.filter((g) => g.slug !== guide.slug).slice(0, 2)
 
@@ -146,7 +149,7 @@ export default function GuideDetailPage({ params }: Props) {
               className="mb-0"
             />
             <a
-              href={whatsappPackage(`planning a trip based on the "${guide.title}" guide`)}
+              href={waUrl(b.whatsappPrimary, `Hello Sunsky Tourism, I want details about planning a trip based on the "${guide.title}" guide.`)}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(37,211,102,0.3)] transition-all duration-300 hover:-translate-y-0.5"

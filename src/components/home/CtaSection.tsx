@@ -6,9 +6,11 @@ import { ArrowRight, MessageCircle, Sparkles } from 'lucide-react'
 import MagneticButton from '@/components/ui/MagneticButton'
 import PremiumButton from '@/components/ui/PremiumButton'
 import { ctaImages } from '@/data/images'
-import { whatsappDefault } from '@/lib/helpers'
+import { useBusiness } from '@/lib/useSettings'
 
 export default function CtaSection() {
+  const b = useBusiness()
+  const whatsappUrl = `https://wa.me/${b.whatsappPrimary}?text=${encodeURIComponent('Hello Sunsky Tourism, I want to know more about your travel packages.')}`
   return (
     <section className="relative overflow-hidden py-28 sm:py-40">
       <div className="absolute inset-0">
@@ -64,7 +66,7 @@ export default function CtaSection() {
             </PremiumButton>
           </MagneticButton>
           <MagneticButton>
-            <PremiumButton href={whatsappDefault} external size="lg" variant="secondary">
+            <PremiumButton href={whatsappUrl} external size="lg" variant="secondary">
               <MessageCircle className="h-4 w-4 text-[#25D366]" />
               WhatsApp Us
             </PremiumButton>
