@@ -6,12 +6,18 @@ import { asString, asOptionalString, asNumber, asPhone, asBool, makeId } from '@
 import { sanitizeBooking } from '@/lib/sanitize'
 import { BOOKING_STATUSES, type BookingStatus, type PaymentStatus } from '@/lib/db'
 
+async function findBooking(id: string) {
+  const col = await bookingsCollection()
+  const doc = await col.findOne({ _id: id })
+  if (doc) return doc
+  return col.findOne({ bookingId: id } as any)
+}
+
 export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
   const denied = await requireAdmin('bookings.view')
   if (denied) return denied
   try {
-    const col = await bookingsCollection()
-    const doc = await col.findOne({ _id: ctx.params.id })
+    const doc = await findBooking(ctx.params.id)
     if (!doc) return Response.json({ error: 'Not found' }, { status: 404 })
     return Response.json(doc)
   } catch {
@@ -26,10 +32,10 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
 
   try {
     const body = await req.json()
-    const col = await bookingsCollection()
-    const existing = await col.findOne({ _id: ctx.params.id })
+    const existing = await findBooking(ctx.params.id)
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
 
+    const col = await bookingsCollection()
     const set: Record<string, unknown> = { updatedAt: Date.now() }
 
     if (body?.status !== undefined) {
@@ -105,7 +111,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
       set.paymentStatus = (set.paidAmount as number) >= existing.totalAmount ? 'paid' : (set.paidAmount as number) > 0 ? 'partial' : 'pending'
     }
 
-    await col.updateOne({ _id: ctx.params.id }, { $set: set })
+    await col.updateOne({ _id: existing._id }, { $set: set })
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })
@@ -117,12 +123,12 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
   if (denied) return denied
   const actor = await getCurrentAdmin()
   try {
-    const col = await bookingsCollection()
-    const existing = await col.findOne({ _id: ctx.params.id })
+    const existing = await findBooking(ctx.params.id)
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
-    await col.deleteOne({ _id: ctx.params.id })
+    const col = await bookingsCollection()
+    await col.deleteOne({ _id: existing._id })
     await paymentsCollection().then((c) => c.deleteMany({ bookingId: existing.bookingId }))
-    if (actor) void audit(actor.username, 'booking.deleted', 'bookings', ctx.params.id)
+    if (actor) void audit(actor.username, 'booking.deleted', 'bookings', existing._id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })
