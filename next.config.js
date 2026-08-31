@@ -4,6 +4,15 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/privacy',
+        destination: '/privacy-policy',
+        permanent: true,
+      },
+    ]
+  },
   experimental: {
     optimizeCss: true,
     serverComponentsExternalPackages: ['mongodb', 'mongodb-connection-string-url', '@mongodb-js/saslprep'],
