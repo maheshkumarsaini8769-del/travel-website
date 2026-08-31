@@ -15,6 +15,14 @@ export const metadata: Metadata = {
   description:
     'Explore curated destinations across Rajasthan, India and the world — Jaipur, Udaipur, Jaisalmer, Goa, Kashmir, Dubai and more.',
   alternates: { canonical: '/destinations' },
+  openGraph: {
+    title: 'Destinations | Sunsky Tourism',
+    description: 'Explore curated destinations across Rajasthan, India and the world.',
+    url: 'https://www.sunskytourism.in/destinations',
+    images: ['/images/jaipur.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 const categoryOrder: DestinationCategory[] = ['Rajasthan', 'India', 'International']

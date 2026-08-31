@@ -16,6 +16,14 @@ export const metadata: Metadata = {
   description:
     'Learn about Sunsky Tourism, Sikar\u2019s trusted travel agency — personalized planning, honest pricing and support that stays with you on the road.',
   alternates: { canonical: '/about' },
+  openGraph: {
+    title: 'About Us | Sunsky Tourism',
+    description: 'Sikar\'s trusted travel agency — personalized planning, honest pricing and support.',
+    url: 'https://www.sunskytourism.in/about',
+    images: ['/images/hero.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 const values = [

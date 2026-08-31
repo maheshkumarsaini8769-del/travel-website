@@ -4,8 +4,16 @@ import { contact } from '@/data/contact'
 
 export const metadata: Metadata = {
   title: 'Cancellation Policy | Sunsky Tourism',
-  description: `How cancellations and changes work for ${contact.brand} travel bookings.`,
+  description: `Understand how cancellations, rescheduling and refund changes work for ${contact.brand} travel bookings. Clear and transparent terms.`,
   alternates: { canonical: '/cancellation-policy' },
+  openGraph: {
+    title: 'Cancellation Policy | Sunsky Tourism',
+    description: 'How cancellations, rescheduling and refunds work.',
+    url: 'https://www.sunskytourism.in/cancellation-policy',
+    images: ['/images/hero.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export default function CancellationPolicyPage() {

@@ -40,9 +40,6 @@ export async function generateMetadata(): Promise<Metadata> {
       description: desc,
       images: ['https://www.sunskytourism.in/images/hero.jpg'],
     },
-    other: {
-      'google-site-verification': '',
-    },
   }
 }
 

@@ -10,8 +10,16 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const metadata: Metadata = {
   title: 'Tours & Activities | Sunsky Tourism',
   description:
-    'Handpicked tours and activities — Jaipur heritage walks, Udaipur sunset boat rides, Jaisalmer desert safaris, Goa water sports and Dubai desert adventures.',
+    'Handpicked tours and activities across Rajasthan — heritage walks, desert safaris, boat rides, food tours and more. Book with local experts.',
   alternates: { canonical: '/tours' },
+  openGraph: {
+    title: 'Tours & Activities | Sunsky Tourism',
+    description: 'Handpicked tours and activities across Rajasthan.',
+    url: 'https://www.sunskytourism.in/tours',
+    images: ['/images/udaipur.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export default async function ToursPage() {

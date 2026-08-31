@@ -10,6 +10,14 @@ export const metadata: Metadata = {
   title: 'All Reviews | Sunsky Tourism',
   description: 'Read all verified traveller reviews from Sunsky Tourism — real experiences from real travellers.',
   alternates: { canonical: '/reviews' },
+  openGraph: {
+    title: 'All Reviews | Sunsky Tourism',
+    description: 'Read verified traveller reviews from Sunsky Tourism.',
+    url: 'https://www.sunskytourism.in/reviews',
+    images: ['/images/hero.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export const dynamic = 'force-dynamic'

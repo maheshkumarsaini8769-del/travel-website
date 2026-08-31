@@ -11,8 +11,16 @@ import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 export const metadata: Metadata = {
   title: 'Travel Packages | Sunsky Tourism',
   description:
-    'Ready-made and customisable tour packages — Rajasthan heritage, Goa holidays, Kashmir escapes, Dubai experiences and Himachal adventures. Clear per-person pricing and no hidden charges.',
+    'Ready-made and customisable tour packages to Rajasthan, Kashmir, Goa, Himachal, Dubai and more — with honest pricing, transparent inclusions and local expertise.',
   alternates: { canonical: '/packages' },
+  openGraph: {
+    title: 'Travel Packages | Sunsky Tourism',
+    description: 'Curated tour packages to Rajasthan, India and international destinations.',
+    url: 'https://www.sunskytourism.in/packages',
+    images: ['/images/jaipur.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export default async function PackagesPage() {

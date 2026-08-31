@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   description:
     'Handpicked hotels, palaces, desert camps, houseboats and beach resorts across India — with the best available rates and honest booking advice.',
   alternates: { canonical: '/hotels' },
+  openGraph: {
+    title: 'Hotels & Stays | Sunsky Tourism',
+    description: 'Handpicked hotels, palaces, desert camps and beach resorts across India.',
+    url: 'https://www.sunskytourism.in/hotels',
+    images: ['/images/udaipur.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export default async function HotelsPage() {

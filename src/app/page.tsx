@@ -1,5 +1,30 @@
 import dynamic from 'next/dynamic'
+import type { Metadata } from 'next'
 import Hero from '@/components/home/Hero'
+
+export const metadata: Metadata = {
+  title: 'Sunsky Tourism — Explore More. Worry Less.',
+  description:
+    'Sunsky Tourism is Sikar, Rajasthan\'s trusted travel agency offering curated tour packages to Jaipur, Udaipur, Jaisalmer, Goa, Kashmir, Dubai and more. Book flights, hotels, holiday packages and guided tours at the best prices.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'Sunsky Tourism — Explore More. Worry Less.',
+    description:
+      'Curated travel packages to Rajasthan, India and international destinations. Flights, hotels, tours and holiday packages at the best prices.',
+    url: 'https://www.sunskytourism.in',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/hero.jpg', width: 1200, height: 630, alt: 'Sunsky Tourism — Explore More Worry Less' }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Sunsky Tourism — Explore More. Worry Less.',
+    description:
+      'Curated travel packages to Rajasthan, India and international destinations. Book at the best prices.',
+    images: ['/images/hero.jpg'],
+  },
+}
 
 const Marquee = dynamic(() => import('@/components/ui/Marquee'))
 const DestinationsShowcase = dynamic(() => import('@/components/home/DestinationsShowcase'))

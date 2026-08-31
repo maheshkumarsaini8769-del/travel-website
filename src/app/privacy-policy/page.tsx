@@ -4,8 +4,16 @@ import { contact } from '@/data/contact'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Sunsky Tourism',
-  description: `How ${contact.brand} collects, uses and protects your personal information.`,
+  description: `Learn how ${contact.brand} collects, uses, stores and protects your personal information when you plan or book travel with us. Your privacy matters.`,
   alternates: { canonical: '/privacy-policy' },
+  openGraph: {
+    title: 'Privacy Policy | Sunsky Tourism',
+    description: 'How we collect, use and protect your personal information.',
+    url: 'https://www.sunskytourism.in/privacy-policy',
+    images: ['/images/hero.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export default function PrivacyPolicyPage() {

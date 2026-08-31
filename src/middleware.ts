@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 const CANONICAL_HOST = 'www.sunskytourism.in'
 
 export function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl
+  const { pathname } = request.nextUrl
   const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()
   const isLocal = host === 'localhost' || host.endsWith('.local')
 
@@ -24,9 +24,13 @@ export function middleware(request: NextRequest) {
   if (needsRedirect) return NextResponse.redirect(target, 301)
 
   const response = NextResponse.next()
-  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
-  response.headers.set('Pragma', 'no-cache')
-  response.headers.set('Expires', '0')
+
+  if (pathname.startsWith('/admin')) {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+  } else {
+    response.headers.set('Cache-Control', 'public, s-maxage=300, max-age=60, stale-while-revalidate=600')
+  }
+
   return response
 }
 

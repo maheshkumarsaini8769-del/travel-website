@@ -10,6 +10,7 @@ import { ctaImages } from '@/data/images'
 import { getSettings } from '@/lib/settings'
 import { Phone, Mail, MapPin, Clock, UserRound } from 'lucide-react'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
+import JsonLd from '@/components/seo/JsonLd'
 
 const faqs = [
   {
@@ -49,6 +50,14 @@ export const metadata: Metadata = {
   description:
     'Contact Sunsky Tourism, Sikar — call 94620 18302, WhatsApp, email sunskytourism.in@gmail.com or visit W.No. 45, Industrial Area, Sikar.',
   alternates: { canonical: '/contact' },
+  openGraph: {
+    title: 'Contact Us | Sunsky Tourism',
+    description: 'Contact Sunsky Tourism — call, WhatsApp, email or visit us in Sikar.',
+    url: 'https://www.sunskytourism.in/contact',
+    images: ['/images/hero.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export default async function ContactPage() {
@@ -96,6 +105,20 @@ export default async function ContactPage() {
         image={ctaImages.cinematic}
       />
       <BreadcrumbJsonLd items={[{ name: 'Home', url: '/' }, { name: 'Contact', url: '/contact' }]} />
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faqs.map((f) => ({
+            '@type': 'Question',
+            name: f.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: f.answer,
+            },
+          })),
+        }}
+      />
 
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

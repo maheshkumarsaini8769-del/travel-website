@@ -4,8 +4,16 @@ import { contact } from '@/data/contact'
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions | Sunsky Tourism',
-  description: `Terms of service for ${contact.brand} — bookings, payments, changes and travel documents.`,
+  description: `Read the terms and conditions for booking travel services with ${contact.brand} — covering bookings, payments, cancellations, changes and travel document requirements.`,
   alternates: { canonical: '/terms' },
+  openGraph: {
+    title: 'Terms & Conditions | Sunsky Tourism',
+    description: 'Terms and conditions for booking travel services.',
+    url: 'https://www.sunskytourism.in/terms',
+    images: ['/images/hero.jpg'],
+    locale: 'en_IN',
+    type: 'website',
+  },
 }
 
 export default function TermsPage() {
