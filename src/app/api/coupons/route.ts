@@ -54,5 +54,5 @@ export async function POST(req: NextRequest) {
   }
 
   const result = await col.insertOne(coupon as any)
-  return Response.json({ ...coupon, _id: result.insertedId }, { status: 201 })
+  return Response.json({ ok: true, id: result.insertedId }, { status: 201 })
 }

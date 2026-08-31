@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { requireAdmin, getCurrentAdmin, audit } from '@/lib/auth'
 import { hotelsCollection } from '@/lib/db'
+import { getHotelsPublic } from '@/lib/data'
 import { sanitizeHotel } from '@/lib/sanitize'
 import { parseListParams } from '@/lib/util'
 
@@ -20,8 +21,8 @@ export async function GET(req: NextRequest) {
     }
   }
   try {
-    const docs = await hotelsCollection().then((c) => c.find({ status: 'published' }).toArray())
-    return Response.json(docs, { headers: { 'cache-control': 'no-store' } })
+    const hotels = await getHotelsPublic()
+    return Response.json(hotels, { headers: { 'cache-control': 'no-store' } })
   } catch {
     return Response.json([])
   }
