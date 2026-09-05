@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import SiteChrome from '@/components/layout/SiteChrome'
 import MotionProvider from '@/components/layout/MotionProvider'
@@ -126,7 +127,6 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/images/logo.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#f97316" />
-        <script src="https://aistudio.zenuxs.site/inter/widget.js?token=zinter-8c86b5d3245341c2b4fda3c47242b42b"></script>
       </head>
       <body className={`${inter.className} bg-[#070707] text-slate-100 antialiased`}>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
@@ -139,6 +139,10 @@ export default async function RootLayout({
             <PageTransition>{children}</PageTransition>
           </SiteChrome>
         </MotionProvider>
+        <Script
+          src="https://aistudio.zenuxs.site/inter/widget.js?token=zinter-8c86b5d3245341c2b4fda3c47242b42b"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
