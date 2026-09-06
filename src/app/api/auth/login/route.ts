@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
     // OAuth login: find or create admin by email
     if (isOauth && email) {
       let admin = await findAdminByEmail(email)
+      let dbError = null
 
       // Auto-create if not exists
       if (!admin) {
@@ -47,12 +48,27 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // If still no admin, try to find again (might be race condition)
+      if (!admin) {
+        try {
+          const col = await adminsCollection()
+          admin = await col.findOne({ email })
+          if (admin) dbError = 'found on retry'
+        } catch (e: any) {
+          dbError = e?.message ?? 'unknown db error'
+        }
+      }
+
       if (admin) {
         if (!admin.active) {
-          await adminsCollection()
-            .then((c) => c.updateOne({ _id: admin!._id }, { $set: { active: true } }))
-            .catch(() => {})
-          admin.active = true
+          try {
+            const col = await adminsCollection()
+            await col.updateOne({ _id: admin!._id }, { $set: { active: true } })
+            admin.active = true
+          } catch (e: any) {
+            dbError = 'enable failed: ' + (e?.message ?? 'unknown')
+            admin.active = true
+          }
         }
 
         if (admin.active) {
@@ -68,7 +84,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      return Response.json({ error: 'Account is disabled' }, { status: 403 })
+      return Response.json({ error: 'Account is disabled', debug: { email, adminFound: !!admin, active: admin?.active, dbError } }, { status: 403 })
     }
 
     // Password login: email + password
