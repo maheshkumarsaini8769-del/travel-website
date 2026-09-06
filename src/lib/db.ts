@@ -12,11 +12,11 @@ export function getDb(): Promise<Db> {
   if (!uri) throw new Error('MONGODB_URI is not set')
   if (!dbPromise) {
     client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-      socketTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 15000,
+      connectTimeoutMS: 15000,
+      socketTimeoutMS: 30000,
       maxPoolSize: 5,
-      minPoolSize: 1,
+      minPoolSize: 0,
       retryWrites: true,
     })
     dbPromise = client
