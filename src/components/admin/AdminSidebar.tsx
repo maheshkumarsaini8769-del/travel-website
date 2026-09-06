@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Package, MapPin, Hotel, Users, UserCheck, CalendarCheck,
   CreditCard, MessageSquare, Star, Search, BarChart3, Settings, Bell,
-  Tag, Car, Shield, Image, X, Menu, LogOut, Map,
+  Tag, Car, Shield, Image, X, Menu, LogOut, Map, Globe,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -33,7 +33,9 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   if (!pathname || pathname === '/admin/login') return null
 
@@ -41,6 +43,14 @@ export default function AdminSidebar() {
     if (!pathname) return false
     if (href === '/admin') return pathname === '/admin'
     return pathname.startsWith(href)
+  }
+
+  const logout = async () => {
+    setLoggingOut(true)
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch {}
+    router.replace('/admin/login')
   }
 
   return (
@@ -94,14 +104,22 @@ export default function AdminSidebar() {
           })}
         </nav>
 
-        <div className="border-t border-white/10 p-3">
+        <div className="border-t border-white/10 p-3 space-y-0.5">
           <Link
             href="/"
             className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
           >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Back to website
+            <Globe className="h-4 w-4 shrink-0" />
+            Website
           </Link>
+          <button
+            onClick={logout}
+            disabled={loggingOut}
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-rose-300"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            {loggingOut ? 'Logging out…' : 'Logout'}
+          </button>
         </div>
       </aside>
     </>

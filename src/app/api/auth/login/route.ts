@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { setAdminSessionCookie, audit, findAdminByEmail, createAdminFromEmail, ENV_ADMIN_ID } from '@/lib/auth'
+import { setAdminSessionCookie, audit, findAdminByEmail, ENV_ADMIN_ID } from '@/lib/auth'
 
 const RATE_WINDOW_MS = 5 * 60 * 1000
 const MAX_ATTEMPTS = 8
@@ -21,6 +21,8 @@ function clientIp(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
 }
 
+const SUPER_ADMIN_EMAIL = 'maheshkumarsaini8769@gmail.com'
+
 export async function POST(req: NextRequest) {
   const ip = clientIp(req)
   if (rateLimited(ip)) {
@@ -37,16 +39,27 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'OAuth login required' }, { status: 400 })
     }
 
-    let admin = await findAdminByEmail(email)
+    const admin = await findAdminByEmail(email)
 
-    if (!admin) {
-      const newId = await createAdminFromEmail(email, oauthName)
-      if (newId) {
-        admin = { _id: newId, email, passwordHash: '', salt: '', name: oauthName ?? email.split('@')[0], role: 'superadmin', permissions: ['*'], active: true, createdAt: Date.now() }
+    if (admin) {
+      if (!admin.active) {
+        return Response.json({ error: 'Account is disabled. Contact admin.' }, { status: 403 })
       }
+
+      const { adminsCollection } = await import('@/lib/db')
+      await adminsCollection()
+        .then((c) => c.updateOne({ _id: admin!._id }, { $set: { lastLoginAt: Date.now() } }))
+        .catch(() => {})
+      setAdminSessionCookie(admin._id)
+      void audit(email, 'oauth-login', 'auth')
+      return Response.json({
+        ok: true,
+        user: { email: admin.email, name: admin.name, role: admin.role, permissions: admin.permissions },
+      })
     }
 
-    if (!admin) {
+    // DB fallback: only super admin email allowed when DB is down
+    if (email === SUPER_ADMIN_EMAIL) {
       setAdminSessionCookie(ENV_ADMIN_ID)
       void audit(email, 'oauth-login-env-fallback', 'auth')
       return Response.json({
@@ -55,33 +68,7 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    if (admin) {
-      if (!admin.active) {
-        try {
-          const { adminsCollection } = await import('@/lib/db')
-          const col = await adminsCollection()
-          await col.updateOne({ _id: admin!._id }, { $set: { active: true } })
-          admin.active = true
-        } catch {
-          admin.active = true
-        }
-      }
-
-      if (admin.active) {
-        const { adminsCollection } = await import('@/lib/db')
-        await adminsCollection()
-          .then((c) => c.updateOne({ _id: admin!._id }, { $set: { lastLoginAt: Date.now() } }))
-          .catch(() => {})
-        setAdminSessionCookie(admin._id)
-        void audit(email, 'oauth-login', 'auth')
-        return Response.json({
-          ok: true,
-          user: { email: admin.email, name: admin.name, role: admin.role, permissions: admin.permissions },
-        })
-      }
-    }
-
-    return Response.json({ error: 'Account is disabled' }, { status: 403 })
+    return Response.json({ error: 'Email not authorized. Ask admin to add your email.' }, { status: 403 })
   } catch {
     return Response.json({ error: 'Bad request' }, { status: 400 })
   }
