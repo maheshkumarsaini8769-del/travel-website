@@ -86,14 +86,7 @@ return (
           },
         ]}
       />
-      <section className="relative flex min-h-[55vh] items-end overflow-hidden pt-24">
-        <div className="absolute inset-0">
-          <Image src={dest.image} alt={dest.name} fill sizes="100vw" priority className="object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#07070a] via-black/50 to-black/30" aria-hidden="true" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(249,115,22,0.12),transparent_55%)]" aria-hidden="true" />
-        </div>
-        <div className="grain absolute inset-0" aria-hidden="true" />
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pt-24 sm:px-6 lg:px-8">
           <Link
             href="/destinations"
             className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 transition-colors hover:text-orange-300"
@@ -101,6 +94,15 @@ return (
             <ArrowLeft className="h-4 w-4" />
             All Destinations
           </Link>
+      </div>
+      <section className="relative flex min-h-[55vh] items-end overflow-hidden">
+        <div className="absolute inset-0">
+          <Image src={dest.image} alt={dest.name} fill sizes="100vw" priority className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07070a] via-black/50 to-black/30" aria-hidden="true" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(249,115,22,0.12),transparent_55%)]" aria-hidden="true" />
+        </div>
+        <div className="grain absolute inset-0" aria-hidden="true" />
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
           <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300 backdrop-blur-md">
             <MapPin className="h-3.5 w-3.5" />
             {dest.region}
