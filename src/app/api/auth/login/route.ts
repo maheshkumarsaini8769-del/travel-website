@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { hashPassword, verifyPassword, setAdminSessionCookie, audit, findAdminByEmail, createAdminFromEmail } from '@/lib/auth'
+import { hashPassword, verifyPassword, setAdminSessionCookie, audit, findAdminByEmail, createAdminFromEmail, ENV_ADMIN_ID } from '@/lib/auth'
 import { adminsCollection, ensureIndexesOnce } from '@/lib/db'
 
 const RATE_WINDOW_MS = 5 * 60 * 1000
@@ -37,8 +37,9 @@ export async function POST(req: NextRequest) {
 
     // OAuth login: find or create admin by email
     if (isOauth && email) {
+      const ALLOWED_EMAIL = 'maheshkumarsaini8769@gmail.com'
+
       let admin = await findAdminByEmail(email)
-      let dbError = null
 
       // Auto-create if not exists
       if (!admin) {
@@ -48,15 +49,14 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // If still no admin, try to find again (might be race condition)
-      if (!admin) {
-        try {
-          const col = await adminsCollection()
-          admin = await col.findOne({ email })
-          if (admin) dbError = 'found on retry'
-        } catch (e: any) {
-          dbError = e?.message ?? 'unknown db error'
-        }
+      // DB fallback: if email is the allowed admin, use env-based admin
+      if (!admin && email === ALLOWED_EMAIL) {
+        setAdminSessionCookie(ENV_ADMIN_ID)
+        void audit(email, 'oauth-login-env-fallback', 'auth')
+        return Response.json({
+          ok: true,
+          user: { email, name: oauthName ?? 'Admin', role: 'superadmin', permissions: ['*'] },
+        })
       }
 
       if (admin) {
@@ -65,8 +65,7 @@ export async function POST(req: NextRequest) {
             const col = await adminsCollection()
             await col.updateOne({ _id: admin!._id }, { $set: { active: true } })
             admin.active = true
-          } catch (e: any) {
-            dbError = 'enable failed: ' + (e?.message ?? 'unknown')
+          } catch {
             admin.active = true
           }
         }
@@ -84,7 +83,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      return Response.json({ error: 'Account is disabled', debug: { email, adminFound: !!admin, active: admin?.active, dbError } }, { status: 403 })
+      return Response.json({ error: 'Account is disabled' }, { status: 403 })
     }
 
     // Password login: email + password
