@@ -79,21 +79,23 @@ export default async function GuideDetailPage({ params }: Props) {
           }}
         />
       ) : null}
-      <section className="relative flex min-h-[45vh] items-end overflow-hidden pt-24">
+      <section className="relative flex min-h-[55vh] flex-col justify-between overflow-hidden pt-20 pb-12 sm:pb-16">
         <div className="absolute inset-0">
           <Image src={guide.image} alt={guide.title} fill sizes="100vw" priority className="object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#07070a] via-black/60 to-black/30" aria-hidden="true" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07070a]/90 via-black/20 to-transparent" aria-hidden="true" />
         </div>
         <div className="grain absolute inset-0" aria-hidden="true" />
-        <div className="relative z-10 mx-auto w-full max-w-3xl px-4 pb-12 sm:px-6 sm:pb-16">
+        <div className="relative z-10 mx-auto w-full max-w-3xl px-4 sm:px-6">
           <Link
             href="/travel-guides"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 transition-colors hover:text-orange-300"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-slate-200 backdrop-blur-md transition-colors hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-300"
           >
             <ArrowLeft className="h-4 w-4" />
             All Guides
           </Link>
-          <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-slate-300">
+        </div>
+        <div className="relative z-10 mx-auto w-full max-w-3xl px-4 sm:px-6">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
             <span className="rounded-full border border-orange-400/40 bg-orange-500/15 px-3.5 py-1.5 font-semibold uppercase tracking-[0.2em] text-orange-300 backdrop-blur-md">
               {guide.category}
             </span>
