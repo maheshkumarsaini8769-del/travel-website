@@ -170,8 +170,8 @@ export default function TourForm({ initial, tourId }: { initial?: Tour; tourId?:
           <div>
             <label className={labelCls}>Your Cost (₹)</label>
             <input type="number" min={0} value={(form as any).cost || ''} onChange={(e) => update('cost' as any, Number(e.target.value))} onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()} placeholder="Actual cost to you" className={inputCls} />
-            {(form as any).cost > 0 && form.price > 0 && (
-              <p className="mt-1 text-[11px] text-emerald-400">Profit: ₹{(form.price - (form as any).cost).toLocaleString('en-IN')}/person</p>
+            {(form as any).cost > 0 && (form.price ?? 0) > 0 && (
+              <p className="mt-1 text-[11px] text-emerald-400">Profit: ₹{((form.price ?? 0) - (form as any).cost).toLocaleString('en-IN')}/person</p>
             )}
           </div>
         </div>
