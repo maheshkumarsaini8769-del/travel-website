@@ -47,16 +47,25 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      if (admin && admin.active) {
-        await adminsCollection()
-          .then((c) => c.updateOne({ _id: admin!._id }, { $set: { lastLoginAt: Date.now() } }))
-          .catch(() => {})
-        setAdminSessionCookie(admin._id)
-        void audit(email, 'oauth-login', 'auth')
-        return Response.json({
-          ok: true,
-          user: { email: admin.email, name: admin.name, role: admin.role, permissions: admin.permissions },
-        })
+      if (admin) {
+        if (!admin.active) {
+          await adminsCollection()
+            .then((c) => c.updateOne({ _id: admin!._id }, { $set: { active: true } }))
+            .catch(() => {})
+          admin.active = true
+        }
+
+        if (admin.active) {
+          await adminsCollection()
+            .then((c) => c.updateOne({ _id: admin!._id }, { $set: { lastLoginAt: Date.now() } }))
+            .catch(() => {})
+          setAdminSessionCookie(admin._id)
+          void audit(email, 'oauth-login', 'auth')
+          return Response.json({
+            ok: true,
+            user: { email: admin.email, name: admin.name, role: admin.role, permissions: admin.permissions },
+          })
+        }
       }
 
       return Response.json({ error: 'Account is disabled' }, { status: 403 })
