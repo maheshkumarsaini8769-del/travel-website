@@ -89,7 +89,7 @@ return (
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pt-24 sm:px-6 lg:px-8">
           <Link
             href="/destinations"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-300 transition-colors hover:text-orange-300"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-slate-200 backdrop-blur-md transition-colors hover:border-orange-400/40 hover:bg-orange-500/10 hover:text-orange-300"
           >
             <ArrowLeft className="h-4 w-4" />
             All Destinations
