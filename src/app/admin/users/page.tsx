@@ -6,7 +6,7 @@ import { Badge, Button, ConfirmDialog, Field, Modal, PageHeader, Spinner, useToa
 
 interface AdminUser {
   id: string
-  username: string
+  email: string
   name: string
   role: string
   permissions: string[]
@@ -36,7 +36,7 @@ export default function AdminUsersPage() {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [toDelete, setToDelete] = useState<AdminUser | null>(null)
-  const [form, setForm] = useState({ username: '', name: '', role: 'manager', password: '', active: true })
+  const [form, setForm] = useState({ email: '', name: '', role: 'manager', password: '', active: true })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -56,8 +56,12 @@ export default function AdminUsersPage() {
   }, [load])
 
   const save = async () => {
-    if (!form.username.trim() || form.password.length < 8) {
-      toast('error', 'Username and an 8+ char password are required')
+    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      toast('error', 'Valid email is required')
+      return
+    }
+    if (form.password.length < 8) {
+      toast('error', 'Password must be at least 8 characters')
       return
     }
     setBusy(true)
@@ -74,7 +78,7 @@ export default function AdminUsersPage() {
       }
       toast('success', 'User created')
       setOpen(false)
-      setForm({ username: '', name: '', role: 'manager', password: '', active: true })
+      setForm({ email: '', name: '', role: 'manager', password: '', active: true })
       await load()
     } finally {
       setBusy(false)
@@ -99,7 +103,7 @@ export default function AdminUsersPage() {
     <div>
       <PageHeader
         title="Admin Users"
-        subtitle="Who can sign into this panel — with roles"
+        subtitle="Who can sign into this panel — identified by email"
         actions={
           <Button onClick={() => setOpen(true)}>
             <Plus className="h-3.5 w-3.5" /> New User
@@ -128,8 +132,8 @@ export default function AdminUsersPage() {
                         {u.role === 'superadmin' ? <ShieldCheck className="h-3.5 w-3.5 text-orange-400" /> : <UserRound className="h-3.5 w-3.5" />}
                       </span>
                       <div>
-                        <p className="font-semibold text-white">{u.name || u.username}</p>
-                        <p className="mt-0.5 font-mono text-[10px] text-slate-500">@{u.username}</p>
+                        <p className="font-semibold text-white">{u.name}</p>
+                        <p className="mt-0.5 font-mono text-[10px] text-slate-500">{u.email}</p>
                       </div>
                     </div>
                   </td>
@@ -162,14 +166,12 @@ export default function AdminUsersPage() {
 
       <Modal open={open} onClose={() => setOpen(false)} title="New admin user">
         <div className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Username">
-              <input value={form.username} onChange={(e) => setForm((f) => ({ ...f, username: e.target.value.toLowerCase() }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" placeholder="rahul" />
-            </Field>
-            <Field label="Display name">
-              <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" placeholder="Rahul Sharma" />
-            </Field>
-          </div>
+          <Field label="Email">
+            <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value.toLowerCase() }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" placeholder="user@example.com" />
+          </Field>
+          <Field label="Display name">
+            <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" placeholder="Rahul Sharma" />
+          </Field>
           <Field label="Role">
             <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none">
               {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label} — {r.hint}</option>)}
@@ -204,7 +206,7 @@ export default function AdminUsersPage() {
           }
         }}
         title="Delete user?"
-        message={`${toDelete?.name || toDelete?.username} will lose access permanently.`}
+        message={`${toDelete?.name || toDelete?.email} will lose access permanently.`}
       />
     </div>
   )

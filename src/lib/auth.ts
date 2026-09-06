@@ -79,6 +79,7 @@ export function getAdminSession(): AdminSession | null {
 // Admin record resolved either from DB or the env fallback
 export interface ResolvedAdmin {
   id: string
+  email: string
   username: string
   name: string
   role: AdminRole
@@ -95,7 +96,8 @@ async function resolveAdminFromDb(adminId: string): Promise<ResolvedAdmin | null
     if (!doc || !doc.active) return null
     return {
       id: doc._id,
-      username: doc.username,
+      email: doc.email,
+      username: doc.username ?? doc.email,
       name: doc.name,
       role: doc.role,
       permissions: doc.permissions,
@@ -109,6 +111,7 @@ async function resolveAdminFromDb(adminId: string): Promise<ResolvedAdmin | null
 export function resolveEnvAdmin(): ResolvedAdmin {
   return {
     id: ENV_ADMIN_ID,
+    email: 'admin@sunskytourism.in',
     username: 'admin',
     name: 'Admin',
     role: 'superadmin',
@@ -122,6 +125,38 @@ export async function getCurrentAdmin(): Promise<ResolvedAdmin | null> {
   if (!session) return null
   if (session.adminId === ENV_ADMIN_ID) return resolveEnvAdmin()
   return resolveAdminFromDb(session.adminId)
+}
+
+export async function findAdminByEmail(email: string): Promise<AdminDoc | null> {
+  try {
+    const col = await adminsCollection()
+    return await col.findOne({ email: email.toLowerCase() })
+  } catch {
+    return null
+  }
+}
+
+export async function createAdminFromEmail(email: string, name?: string): Promise<string | null> {
+  try {
+    ensureIndexesOnce()
+    const col = await adminsCollection()
+    const id = crypto.randomUUID()
+    const { salt, hash } = hashPassword(crypto.randomUUID().slice(0, 12))
+    await col.insertOne({
+      _id: id,
+      email: email.toLowerCase(),
+      passwordHash: hash,
+      salt,
+      name: name ?? email.split('@')[0],
+      role: 'superadmin',
+      permissions: ['*'],
+      active: true,
+      createdAt: Date.now(),
+    })
+    return id
+  } catch {
+    return null
+  }
 }
 
 export async function requireAdmin(permission?: string): Promise<Response> {

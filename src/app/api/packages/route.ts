@@ -60,6 +60,7 @@ function sanitizePackage(body: Record<string, unknown>): TravelPackage {
     hotelCategories: String(body.hotelCategories ?? '').trim(),
     transportation: String(body.transportation ?? '').trim(),
     featured: Boolean(body.featured),
+    twoWayPrice: num(body.twoWayPrice, 0),
   }
 }
 

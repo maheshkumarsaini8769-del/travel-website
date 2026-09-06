@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     if (body?.approved !== undefined) set.approved = asBool(body.approved)
     if (body?.featured !== undefined) set.featured = asBool(body.featured)
     await col.updateOne({ _id: ctx.params.id }, { $set: set })
-    if (actor) void audit(actor.username, 'review.updated', 'reviews', ctx.params.id, set)
+    if (actor) void audit(actor.email, 'review.updated', 'reviews', ctx.params.id, set)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })
@@ -45,7 +45,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
     const existing = await col.findOne({ _id: ctx.params.id })
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
     await col.deleteOne({ _id: ctx.params.id })
-    if (actor) void audit(actor.username, 'review.deleted', 'reviews', ctx.params.id)
+    if (actor) void audit(actor.email, 'review.deleted', 'reviews', ctx.params.id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

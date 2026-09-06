@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
     const hotel = sanitizeHotel({ ...existing, ...body })
     await col.updateOne({ _id: ctx.params.id }, { $set: { ...hotel, updatedAt: Date.now() } })
-    if (actor) void audit(actor.username, 'hotel.updated', 'hotels', ctx.params.id)
+    if (actor) void audit(actor.email, 'hotel.updated', 'hotels', ctx.params.id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })
@@ -42,7 +42,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
     const existing = await col.findOne({ _id: ctx.params.id })
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
     await col.deleteOne({ _id: ctx.params.id })
-    if (actor) void audit(actor.username, 'hotel.deleted', 'hotels', ctx.params.id)
+    if (actor) void audit(actor.email, 'hotel.deleted', 'hotels', ctx.params.id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

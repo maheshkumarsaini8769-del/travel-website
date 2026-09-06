@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     const now = Date.now()
     await col.insertOne({ ...tour, _id: tour.id, createdAt: now, updatedAt: now })
-    if (actor) void audit(actor.username, 'tour.created', 'tours', tour.id)
+    if (actor) void audit(actor.email, 'tour.created', 'tours', tour.id)
     return Response.json({ ok: true, id: tour.id }, { status: 201 })
   } catch (e) {
     return Response.json({ error: String(e) }, { status: 500 })

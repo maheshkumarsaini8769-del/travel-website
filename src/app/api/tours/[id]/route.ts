@@ -83,7 +83,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
       { $set: { ...tour, updatedAt: now }, $setOnInsert: { createdAt: now } },
       { upsert: true }
     )
-    if (actor) void audit(actor.username, 'tour.updated', 'tours', ctx.params.id)
+    if (actor) void audit(actor.email, 'tour.updated', 'tours', ctx.params.id)
     return Response.json({ ok: true })
   } catch (e) {
     return Response.json({ error: String(e) }, { status: 500 })
@@ -99,7 +99,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
     const existing = await col.findOne({ _id: ctx.params.id })
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
     await col.deleteOne({ _id: ctx.params.id })
-    if (actor) void audit(actor.username, 'tour.deleted', 'tours', ctx.params.id)
+    if (actor) void audit(actor.email, 'tour.deleted', 'tours', ctx.params.id)
     return Response.json({ ok: true })
   } catch (e) {
     return Response.json({ error: String(e) }, { status: 500 })

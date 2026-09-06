@@ -27,7 +27,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     if (body?.permissions !== undefined) {
       set.permissions = Array.isArray(body.permissions) ? body.permissions.map(String) : []
     }
-    if (body?.password !== undefined) {
+    if (body?.password !== undefined && String(body.password).length > 0) {
       const password = String(body.password)
       if (password.length < 8) return Response.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
       const { salt, hash } = hashPassword(password)
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     const updates = Object.keys(set)
     if (updates.length === 0) return Response.json({ error: 'Nothing to update' }, { status: 400 })
     await col.updateOne({ _id: ctx.params.id }, { $set: set })
-    if (actor) void audit(actor.username, 'user.updated', 'admin-users', ctx.params.id, { fields: updates })
+    if (actor) void audit(actor.email, 'user.updated', 'admin-users', ctx.params.id, { fields: updates })
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Bad request' }, { status: 400 })
@@ -63,7 +63,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
     }
 
     await col.deleteOne({ _id: ctx.params.id })
-    if (actor) void audit(actor.username, 'user.deleted', 'admin-users', ctx.params.id, { username: doc.username })
+    if (actor) void audit(actor.email, 'user.deleted', 'admin-users', ctx.params.id, { email: doc.email })
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Bad request' }, { status: 400 })

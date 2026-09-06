@@ -114,7 +114,8 @@ export { ROLE_LABELS, ROLE_PERMISSIONS } from './roles'
 
 export interface AdminDoc {
   _id: string
-  username: string
+  email: string
+  username?: string
   passwordHash: string
   salt: string
   name: string

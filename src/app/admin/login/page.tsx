@@ -1,89 +1,95 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import Script from 'next/script'
+
+const ALLOWED_EMAIL = 'maheshkumarsaini8769@gmail.com'
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
+  const [authReady, setAuthReady] = useState(false)
+  const [redirectUri, setRedirectUri] = useState('')
   const router = useRouter()
+  const authRef = useRef<HTMLElement | null>(null)
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setBusy(true)
-    setError('')
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-      if (res.ok) {
-        router.replace('/admin/packages')
-      } else {
-        const data = await res.json().catch(() => ({}))
-        setError(data.error ?? 'Login failed')
+  useEffect(() => {
+    setRedirectUri(`${window.location.origin}/admin/login`)
+  }, [])
+
+  useEffect(() => {
+    const el = authRef.current
+    if (!el || !authReady) return
+
+    const onSuccess = async (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.access_token) return
+
+      try {
+        const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
+        const user = await oauth.getUserInfo({ access_token: detail.access_token })
+        const email = user?.email ?? ''
+
+        if (email.toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
+          setError(`Access denied.`)
+          return
+        }
+
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email, name: user?.name, oauth: true }),
+        })
+
+        if (res.ok) {
+          router.replace('/admin')
+        } else {
+          const data = await res.json().catch(() => ({}))
+          setError(data.error ?? 'Login failed.')
+        }
+      } catch {
+        setError('Login failed.')
       }
-    } catch {
-      setError('Network error')
-    } finally {
-      setBusy(false)
     }
-  }
+
+    const onError = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      setError(detail?.message ?? 'Login failed')
+    }
+
+    el.addEventListener('success', onSuccess)
+    el.addEventListener('error', onError)
+    return () => {
+      el.removeEventListener('success', onSuccess)
+      el.removeEventListener('error', onError)
+    }
+  }, [router, authReady])
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center">
-      <form
-        onSubmit={submit}
-        className="w-full max-w-sm rounded-[28px] border border-white/10 bg-white/[0.03] p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]"
-      >
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600">
-          <Lock className="h-5 w-5 text-white" />
-        </span>
-        <h1 className="mt-5 text-xl font-bold text-white">Admin Login</h1>
-        <p className="mt-1 text-sm text-slate-400">Sign in to manage the website.</p>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
-          autoFocus
-          className="mt-6 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none transition-colors focus:border-orange-400/60"
-        />
-        <div className="relative mt-6">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Admin password"
-            className="w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 pr-11 text-sm text-white outline-none transition-colors focus:border-orange-400/60"
+    <div className="flex min-h-screen items-center justify-center bg-[#070707]">
+      <div className="w-full max-w-sm px-4">
+        {error && <p className="mb-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-center text-sm font-medium text-rose-400">{error}</p>}
+
+        {authReady ? (
+          <zenuxs-auth
+            ref={authRef}
+            client-id="1fe396337ca4c424"
+            redirect-uri={redirectUri}
+            scope="openid profile email"
+            theme="dark"
+            height="60px"
+            auto-redirect="false"
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            title={showPassword ? 'Hide password' : 'Show password'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-white"
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-        {error ? <p className="mt-3 text-sm font-medium text-rose-400">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={busy || !password}
-          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {busy ? 'Signing in…' : 'Sign in'}
-          <ArrowRight className="h-4 w-4" />
-        </button>
-        <p className="mt-5 text-center text-[11px] text-slate-500">
-          Password from <code className="text-orange-400">.env.local</code> → ADMIN_PASSWORD
-        </p>
-      </form>
+        ) : (
+          <p className="text-center text-sm text-slate-500">Loading...</p>
+        )}
+      </div>
+
+      <Script
+        src="https://unpkg.com/zenuxs-oauth@7/dist/zenux-oauth.min.js"
+        strategy="afterInteractive"
+        onLoad={() => setAuthReady(true)}
+      />
     </div>
   )
 }

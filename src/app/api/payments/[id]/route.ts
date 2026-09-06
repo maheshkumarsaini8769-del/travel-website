@@ -50,7 +50,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     if (body?.date !== undefined) set.date = asNumber(body.date) || doc.date
 
     await col.updateOne({ _id: ctx.params.id }, { $set: set })
-    if (actor) void audit(actor.username, 'payment.updated', 'payments', ctx.params.id)
+    if (actor) void audit(actor.email, 'payment.updated', 'payments', ctx.params.id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })
@@ -69,7 +69,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
     await bookingsCollection().then((c) =>
       c.updateOne({ bookingId: doc.bookingId }, { $inc: { paidAmount: -doc.amount } })
     )
-    if (actor) void audit(actor.username, 'payment.deleted', 'payments', ctx.params.id)
+    if (actor) void audit(actor.email, 'payment.deleted', 'payments', ctx.params.id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

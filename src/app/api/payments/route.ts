@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     await bookingsCollection().then((c) =>
       c.updateOne({ bookingId }, { $set: { paidAmount: newPaid, paymentStatus: newPaid >= booking.totalAmount ? 'paid' : 'partial', updatedAt: now } })
     )
-    if (actor) void audit(actor.username, 'payment.created', 'payments', paymentId, { bookingId, amount })
+    if (actor) void audit(actor.email, 'payment.created', 'payments', paymentId, { bookingId, amount })
     return Response.json({ ok: true, paymentId }, { status: 201 })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

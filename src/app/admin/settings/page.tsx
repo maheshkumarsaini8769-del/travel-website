@@ -254,10 +254,18 @@ function SecurityTab() {
   const [showCurrent, setShowCurrent] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((r) => r.json())
+      .then((d) => setHasPassword(d?.hasPassword ?? false))
+      .catch(() => setHasPassword(false))
+  }, [])
 
   const changePassword = async () => {
-    if (!currentPassword || !newPassword) {
-      toast('error', 'Fill in all fields')
+    if (!newPassword) {
+      toast('error', 'Enter a new password')
       return
     }
     if (newPassword !== confirmPassword) {
@@ -266,6 +274,10 @@ function SecurityTab() {
     }
     if (newPassword.length < 6) {
       toast('error', 'New password must be at least 6 characters')
+      return
+    }
+    if (hasPassword && !currentPassword) {
+      toast('error', 'Current password is required')
       return
     }
     setBusy(true)
@@ -281,6 +293,7 @@ function SecurityTab() {
         setCurrentPassword('')
         setNewPassword('')
         setConfirmPassword('')
+        setHasPassword(true)
       } else {
         toast('error', data.error ?? 'Failed to change password')
       }
@@ -293,28 +306,34 @@ function SecurityTab() {
 
   return (
     <div className="max-w-md">
-      <h3 className="text-lg font-bold text-white">Change Password</h3>
-      <p className="mt-1 text-sm text-slate-400">Update your admin login password.</p>
+      <h3 className="text-lg font-bold text-white">{hasPassword ? 'Change Password' : 'Set Password'}</h3>
+      <p className="mt-1 text-sm text-slate-400">
+        {hasPassword
+          ? 'Update your admin login password.'
+          : 'You logged in via OAuth. Set a password to also enable email login.'}
+      </p>
 
       <div className="mt-6 space-y-4">
-        <Field label="Current password">
-          <div className="relative">
-            <input
-              type={showCurrent ? 'text' : 'password'}
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Enter current password"
-              className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 pr-11 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
-            />
-            <button
-              type="button"
-              onClick={() => setShowCurrent(!showCurrent)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-            >
-              {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </Field>
+        {hasPassword && (
+          <Field label="Current password">
+            <div className="relative">
+              <input
+                type={showCurrent ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 pr-11 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              >
+                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </Field>
+        )}
 
         <Field label="New password">
           <div className="relative">
@@ -348,10 +367,10 @@ function SecurityTab() {
 
       <button
         onClick={changePassword}
-        disabled={busy || !currentPassword || !newPassword || !confirmPassword}
+        disabled={busy || !newPassword || !confirmPassword}
         className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy ? 'Changing…' : 'Change Password'}
+        {busy ? 'Saving…' : hasPassword ? 'Change Password' : 'Set Password'}
         <Shield className="h-4 w-4" />
       </button>
     </div>

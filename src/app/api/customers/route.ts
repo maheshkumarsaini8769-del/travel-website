@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       createdAt: now,
       updatedAt: now,
     })
-    if (actor) void audit(actor.username, 'customer.created', 'customers', phone)
+    if (actor) void audit(actor.email, 'customer.created', 'customers', phone)
     return Response.json({ ok: true }, { status: 201 })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

@@ -69,7 +69,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
         set.paymentStatus = 'paid'
         void notify('payment', 'Payment auto-recorded', `${paymentId} — ₹${existing.totalAmount} (booking completed)`, '/admin/payments')
       }
-      if (actor) void audit(actor.username, 'booking.status_changed', 'bookings', ctx.params.id, { status })
+      if (actor) void audit(actor.email, 'booking.status_changed', 'bookings', ctx.params.id, { status })
     }
 
     if (body?.notes !== undefined) set.notes = asOptionalString(body.notes, 2000)
@@ -101,7 +101,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
         const newPaid = asString(p.status, 20) === 'refunded' ? existing.paidAmount - amount : existing.paidAmount + amount
         set.paidAmount = Math.max(0, newPaid)
         set.paymentStatus = (Math.max(0, newPaid) >= existing.totalAmount ? 'paid' : Math.max(0, newPaid) > 0 ? 'partial' : 'pending') as PaymentStatus
-        if (actor) void audit(actor.username, 'payment.added', 'bookings', ctx.params.id, { amount })
+        if (actor) void audit(actor.email, 'payment.added', 'bookings', ctx.params.id, { amount })
         void notify('payment', 'Payment recorded', `${paymentId} — ₹${amount}`, '/admin/payments')
       }
     }
@@ -128,7 +128,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
     const col = await bookingsCollection()
     await col.deleteOne({ _id: existing._id })
     await paymentsCollection().then((c) => c.deleteMany({ bookingId: existing.bookingId }))
-    if (actor) void audit(actor.username, 'booking.deleted', 'bookings', existing._id)
+    if (actor) void audit(actor.email, 'booking.deleted', 'bookings', existing._id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

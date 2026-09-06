@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { requireAdmin, hasPermission, getCurrentAdmin, hashPassword, audit } from '@/lib/auth'
+import { requireAdmin, getCurrentAdmin, hashPassword, audit } from '@/lib/auth'
 import { adminsCollection, type AdminRole } from '@/lib/db'
 
 export async function GET() {
@@ -10,7 +10,7 @@ export async function GET() {
     const docs = await col.find().sort({ createdAt: 1 }).toArray()
     const users = docs.map((d) => ({
       id: d._id,
-      username: d.username,
+      email: d.email,
       name: d.name,
       role: d.role,
       permissions: d.permissions,
@@ -30,15 +30,15 @@ export async function POST(req: NextRequest) {
   const actor = await getCurrentAdmin()
   try {
     const body = await req.json()
-    const username = String(body?.username ?? '').trim().toLowerCase()
+    const email = String(body?.email ?? '').trim().toLowerCase()
     const password = String(body?.password ?? '')
-    const name = String(body?.name ?? '').trim() || username
+    const name = String(body?.name ?? '').trim() || email.split('@')[0]
     const role = (String(body?.role ?? 'manager') as AdminRole)
     const permissions = Array.isArray(body?.permissions) ? body.permissions.map(String) : []
     const active = body?.active !== false
 
-    if (!username || !/^[a-z0-9._-]{3,32}$/.test(username)) {
-      return Response.json({ error: 'Username must be 3-32 chars (letters, numbers, dot, dash, underscore)' }, { status: 400 })
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return Response.json({ error: 'Valid email is required' }, { status: 400 })
     }
     if (password.length < 8) return Response.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
     if (!['superadmin', 'manager', 'booking-staff', 'content-manager'].includes(role)) {
@@ -46,14 +46,14 @@ export async function POST(req: NextRequest) {
     }
 
     const col = await adminsCollection()
-    const existing = await col.findOne({ username })
-    if (existing) return Response.json({ error: 'Username already exists' }, { status: 409 })
+    const existing = await col.findOne({ email })
+    if (existing) return Response.json({ error: 'Email already exists' }, { status: 409 })
 
     const { salt, hash } = hashPassword(password)
     const id = crypto.randomUUID()
     await col.insertOne({
       _id: id,
-      username,
+      email,
       passwordHash: hash,
       salt,
       name,
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       active,
       createdAt: Date.now(),
     })
-    if (actor) void audit(actor.username, 'user.created', 'admin-users', id, { username, role })
+    if (actor) void audit(actor.email, 'user.created', 'admin-users', id, { email, role })
     return Response.json({ ok: true, id }, { status: 201 })
   } catch {
     return Response.json({ error: 'Bad request' }, { status: 400 })

@@ -58,7 +58,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     }
 
     await col.updateOne({ _id: ctx.params.id }, { $set: set })
-    if (actor) void audit(actor.username, 'lead.updated', 'leads', ctx.params.id, { status: set.status })
+    if (actor) void audit(actor.email, 'lead.updated', 'leads', ctx.params.id, { status: set.status })
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })
@@ -74,7 +74,7 @@ export async function DELETE(_req: NextRequest, ctx: { params: { id: string } })
     const existing = await col.findOne({ _id: ctx.params.id })
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
     await col.deleteOne({ _id: ctx.params.id })
-    if (actor) void audit(actor.username, 'lead.deleted', 'leads', ctx.params.id)
+    if (actor) void audit(actor.email, 'lead.deleted', 'leads', ctx.params.id)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

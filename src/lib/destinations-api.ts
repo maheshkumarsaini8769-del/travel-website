@@ -43,7 +43,7 @@ export async function putDestinationApi(req: NextRequest, slug: string): Promise
         },
       }
     )
-    if (actor) void audit(actor.username, 'destination.updated', 'destinations', slug)
+    if (actor) void audit(actor.email, 'destination.updated', 'destinations', slug)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })
@@ -60,7 +60,7 @@ export async function deleteDestinationApi(slug: string): Promise<Response> {
     const existing = await col.findOne({ _id: slug })
     if (!existing) return Response.json({ error: 'Not found' }, { status: 404 })
     await col.deleteOne({ _id: slug })
-    if (actor) void audit(actor.username, 'destination.deleted', 'destinations', slug)
+    if (actor) void audit(actor.email, 'destination.deleted', 'destinations', slug)
     return Response.json({ ok: true })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

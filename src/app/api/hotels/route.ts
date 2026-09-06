@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const now = Date.now()
     const id = String(body.id ?? body.slug ?? '').trim() || crypto.randomUUID()
     await hotelsCollection().then((c) => c.insertOne({ ...hotel, _id: id, createdAt: now, updatedAt: now }))
-    if (actor) void audit(actor.username, 'hotel.created', 'hotels', id)
+    if (actor) void audit(actor.email, 'hotel.created', 'hotels', id)
     return Response.json({ ok: true, id }, { status: 201 })
   } catch {
     return Response.json({ error: 'Database unavailable' }, { status: 503 })

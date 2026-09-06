@@ -99,21 +99,21 @@ export default function Footer() {
               {b.address ?? fallback.address}
             </p>
             <div className="mt-5 flex gap-3">
-              {s?.social?.facebook && (
+              {s?.social?.facebook && s.social.facebook.trim() !== '' ? (
                 <a href={s.social.facebook} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 transition-all hover:border-blue-400/40 hover:bg-blue-500/10 hover:text-blue-400" title="Facebook">
                   <FacebookIcon className="h-4 w-4" />
                 </a>
-              )}
-              {s?.social?.instagram && (
+              ) : null}
+              {s?.social?.instagram && s.social.instagram.trim() !== '' ? (
                 <a href={s.social.instagram} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 transition-all hover:border-pink-400/40 hover:bg-pink-500/10 hover:text-pink-400" title="Instagram">
                   <InstagramIcon className="h-4 w-4" />
                 </a>
-              )}
-              {s?.social?.youtube && (
+              ) : null}
+              {s?.social?.youtube && s.social.youtube.trim() !== '' ? (
                 <a href={s.social.youtube} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-400 transition-all hover:border-red-400/40 hover:bg-red-500/10 hover:text-red-400" title="YouTube">
                   <YoutubeIcon className="h-4 w-4" />
                 </a>
-              )}
+              ) : null}
             </div>
           </div>
 
