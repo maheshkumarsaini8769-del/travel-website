@@ -3,13 +3,14 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import { getDestinationBySlug, getDestinations } from '@/lib/data'
+import { tours } from '@/data/tours'
 import Gallery from '@/components/ui/Gallery'
 import SectionHeading from '@/components/ui/SectionHeading'
 import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { getSettings, waUrl } from '@/lib/settings'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import JsonLd from '@/components/seo/JsonLd'
-import { ArrowLeft, CalendarDays, MapPin, Sparkles, MessageCircle, Navigation } from 'lucide-react'
+import { ArrowLeft, CalendarDays, MapPin, Sparkles, MessageCircle, Navigation, Clock, ArrowRight } from 'lucide-react'
 import { contact, mapsUrl } from '@/data/contact'
 
 interface Props {
@@ -44,6 +45,10 @@ export default async function DestinationDetailPage({ params }: Props) {
     getSettings(),
   ])
   if (!dest) notFound()
+
+  const destTours = tours.filter((t) =>
+    t.destinationId === dest.id || t.destination.toLowerCase() === dest.name.toLowerCase()
+  )
 
   const b = settings.business
 
@@ -175,6 +180,24 @@ return (
                 </ul>
               </div>
 
+              {destTours.length > 0 && (
+                <div className="rounded-3xl border border-orange-400/20 bg-orange-500/[0.05] p-7">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-orange-400">
+                    Tours & Activities
+                  </p>
+                  <p className="mt-2 text-sm text-slate-300">
+                    {destTours.length} tour{destTours.length > 1 ? 's' : ''} available in {dest.name}
+                  </p>
+                  <a
+                    href="#tours"
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3.5 font-semibold text-white shadow-[0_10px_30px_rgba(249,115,22,0.3)] transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    View Tours & Prices
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </div>
+              )}
+
               <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-7">
                 <a
                   href={waUrl(b.whatsappPrimary, `Hi Sunsky Tourism, I'm interested in visiting ${dest.name}. Please share itinerary and pricing details.`)}
@@ -220,6 +243,62 @@ return (
           </div>
         </div>
       </section>
+
+      {destTours.length > 0 && (
+        <section id="tours" className="relative py-20 sm:py-28">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <SectionHeading
+              eyebrow="Tours & Activities"
+              title={`Things to do in ${dest.name}.`}
+            />
+            <StaggerGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {destTours.map((tour) => (
+                <StaggerItem key={tour.id}>
+                  <Link
+                    href={`/tours/${tour.id}`}
+                    className="group block overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <Image
+                        loading="lazy" decoding="async"
+                        src={tour.images[0]}
+                        alt={tour.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" aria-hidden="true" />
+                      <span className="absolute bottom-4 left-4 flex items-center gap-1.5 rounded-full border border-white/20 bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                        <Clock className="h-3 w-3 text-orange-300" />
+                        {tour.durationLabel}
+                      </span>
+                      <span className="absolute top-4 right-4 rounded-full border border-orange-400/40 bg-orange-500/15 px-3 py-1 text-[11px] font-bold text-orange-300 backdrop-blur-md">
+                        {tour.category}
+                      </span>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-lg font-bold text-white">{tour.title}</h3>
+                      <p className="mt-1 text-sm text-slate-400">{tour.tagline}</p>
+                      <div className="mt-4 flex items-end justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl font-bold text-white">₹{tour.price.toLocaleString('en-IN')}</span>
+                          {tour.originalPrice > tour.price && (
+                            <span className="text-xs text-slate-500 line-through">₹{tour.originalPrice.toLocaleString('en-IN')}</span>
+                          )}
+                        </div>
+                        <span className="flex items-center gap-1.5 text-sm font-semibold text-orange-400 transition-colors group-hover:text-orange-300">
+                          Book Now
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </StaggerItem>
+              ))}
+            </StaggerGroup>
+          </div>
+        </section>
+      )}
 
       <section className="relative pb-24 sm:pb-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

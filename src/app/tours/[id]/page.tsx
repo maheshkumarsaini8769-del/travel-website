@@ -141,10 +141,15 @@ export default function TourDetailPage({ params }: Props) {
               <Clock className="h-4 w-4 text-orange-400" />
               {tour.durationLabel}
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md">
-              <BadgeIndianRupee className="h-4 w-4 text-orange-400" />
-              {tour.priceLabel}
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-400/40 bg-orange-500/15 px-4 py-2 text-sm font-bold text-orange-300 backdrop-blur-md">
+              <BadgeIndianRupee className="h-4 w-4" />
+              ₹{tour.price.toLocaleString('en-IN')} per person
             </span>
+            {tour.originalPrice > tour.price && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-slate-400 line-through">
+                ₹{tour.originalPrice.toLocaleString('en-IN')}
+              </span>
+            )}
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md">
               <ShieldCheck className="h-4 w-4 text-orange-400" />
               {tour.tourType}

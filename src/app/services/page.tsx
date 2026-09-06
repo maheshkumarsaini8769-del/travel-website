@@ -16,6 +16,21 @@ export const metadata: Metadata = {
   description:
     'Flights, hotels, tour packages, holiday plans, visa assistance and transportation — every travel service under one roof in Sikar.',
   alternates: { canonical: '/services' },
+  openGraph: {
+    title: 'Services | Sunsky Tourism',
+    description: 'Flights, hotels, tour packages, holiday plans, visa assistance and transportation — every travel service under one roof in Sikar.',
+    url: 'https://www.sunskytourism.in/services',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Services | Sunsky Tourism',
+    description: 'Flights, hotels, tour packages, holiday plans, visa assistance and transportation — every travel service under one roof in Sikar.',
+    images: ['/images/og-default.jpg'],
+  },
 }
 
 export default async function ServicesPage() {
@@ -55,7 +70,7 @@ export default async function ServicesPage() {
                         </span>
                       </div>
                       <div className="p-6">
-                        <h2 className="text-xl font-bold text-white">{s.name}</h2>
+                        <h3 className="text-xl font-bold text-white">{s.name}</h3>
                         <p className="mt-1 text-sm font-medium text-orange-300">{s.short}</p>
                         <p className="mt-3 text-sm leading-relaxed text-slate-400">{s.description}</p>
                         <ul className="mt-4 space-y-2">

@@ -28,6 +28,7 @@ function sanitizePackage(body: Record<string, unknown>) {
     overview: String(body.overview ?? '').trim(),
     pricePerPerson: num(body.pricePerPerson, 0),
     originalPrice: num(body.originalPrice, 0),
+    cost: num(body.cost, 0),
     currency: String(body.currency ?? '₹').trim() || '₹',
     basis: String(body.basis ?? '').trim(),
     validity: String(body.validity ?? '').trim(),
@@ -52,6 +53,7 @@ function sanitizePackage(body: Record<string, unknown>) {
     hotelCategories: String(body.hotelCategories ?? '').trim(),
     transportation: String(body.transportation ?? '').trim(),
     featured: Boolean(body.featured),
+    twoWayPrice: num(body.twoWayPrice, 0),
   }
 }
 

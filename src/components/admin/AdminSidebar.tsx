@@ -5,13 +5,14 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, Package, MapPin, Hotel, Users, UserCheck, CalendarCheck,
   CreditCard, MessageSquare, Star, Search, BarChart3, Settings, Bell,
-  Tag, Car, Shield, Image, X, Menu, LogOut,
+  Tag, Car, Shield, Image, X, Menu, LogOut, Map,
 } from 'lucide-react'
 import { useState } from 'react'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/packages', label: 'Packages', icon: Package },
+  { href: '/admin/tours', label: 'Tours', icon: Map },
   { href: '/admin/destinations', label: 'Destinations', icon: MapPin },
   { href: '/admin/hotels', label: 'Hotels', icon: Hotel },
   { href: '/admin/vehicles', label: 'Vehicles', icon: Car },

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const vehicle = sanitizeVehicle(body)
     if (!vehicle.name) return Response.json({ error: 'Vehicle name is required' }, { status: 400 })
     const now = Date.now()
-    const id = crypto.randomUUID()
+    const id = String(body.id ?? '').trim() || crypto.randomUUID()
     await vehiclesCollection().then((c) => c.insertOne({ ...vehicle, _id: id, createdAt: now, updatedAt: now }))
     if (actor) void audit(actor.username, 'vehicle.created', 'vehicles', id)
     return Response.json({ ok: true, id }, { status: 201 })

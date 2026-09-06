@@ -12,6 +12,21 @@ export const metadata: Metadata = {
   description:
     'Plan your trip with Sunsky Tourism — share your destination, dates, travellers and budget, and get a personalised itinerary and quote on WhatsApp within hours.',
   alternates: { canonical: '/booking' },
+  openGraph: {
+    title: 'Booking Enquiry | Sunsky Tourism',
+    description: 'Plan your trip with Sunsky Tourism — share your destination, dates, travellers and budget, and get a personalised itinerary and quote on WhatsApp within hours.',
+    url: 'https://www.sunskytourism.in/booking',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Booking Enquiry | Sunsky Tourism',
+    description: 'Plan your trip with Sunsky Tourism — share your destination, dates, travellers and budget, and get a personalised itinerary and quote on WhatsApp within hours.',
+    images: ['/images/og-default.jpg'],
+  },
 }
 
 const steps = [

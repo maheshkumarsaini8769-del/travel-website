@@ -50,6 +50,7 @@ export default function BookingWidget({ pkg }: { pkg: TravelPackage }) {
   const [couponBusy, setCouponBusy] = useState(false)
   const [couponError, setCouponError] = useState('')
   const [availableCoupons, setAvailableCoupons] = useState<CouponItem[]>([])
+  const [isTwoWay, setIsTwoWay] = useState(false)
 
   useEffect(() => {
     fetch('/api/coupons/public')
@@ -58,7 +59,8 @@ export default function BookingWidget({ pkg }: { pkg: TravelPackage }) {
       .catch(() => {})
   }, [])
 
-  const baseTotal = pkg.pricePerPerson * travellers
+  const basePrice = isTwoWay && pkg.twoWayPrice ? pkg.twoWayPrice : pkg.pricePerPerson
+  const baseTotal = basePrice * travellers
   const couponDiscount = couponResult?.discount ?? 0
   const estimate = Math.max(0, baseTotal - couponDiscount)
   const discount = Math.round(((pkg.originalPrice - pkg.pricePerPerson) / pkg.originalPrice) * 100)
@@ -116,6 +118,8 @@ export default function BookingWidget({ pkg }: { pkg: TravelPackage }) {
           destination: pkg.region,
           couponCode: couponResult?.code,
           couponDiscount,
+          isTwoWay,
+          tripType: isTwoWay ? 'round-trip' : 'one-way',
         }),
       })
       const data = await res.json()
@@ -143,6 +147,7 @@ export default function BookingWidget({ pkg }: { pkg: TravelPackage }) {
     const message = [
       `Hello Sunsky Tourism, I want to book the ${pkg.name} package.`,
       '',
+      `Trip type: ${isTwoWay ? 'Round Trip (2-Way)' : 'One Way'}`,
       `Travellers: ${travellers}`,
       date ? `Preferred travel date: ${date}` : '',
       name ? `Name: ${name}` : '',
@@ -246,6 +251,11 @@ export default function BookingWidget({ pkg }: { pkg: TravelPackage }) {
           <p className="pb-1 text-sm text-slate-500 line-through">₹{pkg.originalPrice.toLocaleString('en-IN')}</p>
         </div>
         <p className="mt-1 text-xs text-emerald-400">You save {discount}% on this package</p>
+        {pkg.twoWayPrice ? (
+          <p className="mt-2 text-xs text-slate-400">
+            Round trip: <span className="font-semibold text-orange-300">₹{pkg.twoWayPrice.toLocaleString('en-IN')}/person</span>
+          </p>
+        ) : null}
       </div>
       <form onSubmit={onBook} className="space-y-4 p-6">
         <div>
@@ -282,6 +292,41 @@ export default function BookingWidget({ pkg }: { pkg: TravelPackage }) {
             ))}
           </select>
         </div>
+
+        {/* 2-Way Toggle */}
+        {pkg.twoWayPrice ? (
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+            <label className="mb-3 flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400">
+                Round Trip (2-Way)
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isTwoWay}
+                onClick={() => setIsTwoWay(!isTwoWay)}
+                className={`relative h-6 w-11 rounded-full transition-colors ${isTwoWay ? 'bg-orange-500' : 'bg-white/10'}`}
+              >
+                <span
+                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${isTwoWay ? 'left-[22px]' : 'left-0.5'}`}
+                />
+              </button>
+            </label>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-slate-400">
+                {isTwoWay ? 'Round trip (with return)' : 'One way (single side)'}
+              </span>
+              <span className="font-semibold text-white">
+                ₹{basePrice.toLocaleString('en-IN')}/person
+              </span>
+            </div>
+            {isTwoWay && (
+              <p className="mt-2 text-xs text-emerald-400">
+                Includes return journey — ₹{(pkg.twoWayPrice - pkg.pricePerPerson).toLocaleString('en-IN')} extra per person
+              </p>
+            )}
+          </div>
+        ) : null}
 
         {/* Coupon Section */}
         <div className="rounded-2xl border border-dashed border-orange-400/30 bg-orange-500/5 p-4">
@@ -348,7 +393,7 @@ export default function BookingWidget({ pkg }: { pkg: TravelPackage }) {
         {/* Price Summary */}
         <div className="space-y-2 rounded-2xl border border-white/10 bg-black/20 px-5 py-3.5">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Base ({travellers} × ₹{pkg.pricePerPerson.toLocaleString('en-IN')})</span>
+            <span className="text-slate-400">Base ({travellers} × ₹{basePrice.toLocaleString('en-IN')}{isTwoWay ? ' round trip' : ''})</span>
             <span className="text-white">₹{baseTotal.toLocaleString('en-IN')}</span>
           </div>
           {couponDiscount > 0 && (

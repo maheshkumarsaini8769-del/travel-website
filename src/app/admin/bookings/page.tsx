@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Trash2, RefreshCw } from 'lucide-react'
-import Link from 'next/link'
 import { DataTable } from '@/components/admin/DataTable'
-import { Badge, ConfirmDialog, PageHeader, useToast } from '@/components/admin/ui'
+import { ConfirmDialog, PageHeader, useToast } from '@/components/admin/ui'
 
 const STATUS_BADGES: Record<string, { color: 'amber' | 'sky' | 'orange' | 'green' | 'rose' | 'slate'; label: string }> = {
   pending: { color: 'amber', label: 'Pending' },
@@ -33,11 +32,22 @@ interface PublicBooking {
   createdAt: number
 }
 
+const FILTER_TABS: { key: string; label: string }[] = [
+  { key: '', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'in-progress', label: 'In Progress' },
+  { key: 'completed', label: 'Completed' },
+  { key: 'cancelled', label: 'Cancelled' },
+  { key: 'refunded', label: 'Refunded' },
+]
+
 export default function AdminBookings() {
   const { toast } = useToast()
   const [toDelete, setToDelete] = useState<PublicBooking | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [statusFilter, setStatusFilter] = useState('')
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -65,7 +75,8 @@ export default function AdminBookings() {
   return (
     <div>
       <PageHeader title="Bookings" subtitle="Every confirmed and requested trip — update status right from the list" />
-      <div className="mb-3 flex items-center gap-2">
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setRefreshKey((k) => k + 1)}
           className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
@@ -83,8 +94,27 @@ export default function AdminBookings() {
           <span className="text-xs text-slate-400">Auto (15s)</span>
         </label>
       </div>
+
+      {/* Status filter tabs */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        {FILTER_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => { setStatusFilter(tab.key); setRefreshKey((k) => k + 1) }}
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+              statusFilter === tab.key
+                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20'
+                : 'border border-white/10 bg-white/5 text-slate-400 hover:border-orange-400/30 hover:text-white'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <DataTable<PublicBooking>
         refreshKey={refreshKey}
+        extra={statusFilter}
         columns={[
           {
             key: 'bookingId',
@@ -140,8 +170,29 @@ export default function AdminBookings() {
             ),
           },
           { key: 'source', label: 'Source', render: (b) => <span className="text-xs text-slate-500">{b.source || 'website'}</span> },
+          {
+            key: 'cost',
+            label: 'Profit',
+            render: (b) => {
+              const cost = (b as any).cost || 0
+              if (!cost) return <span className="text-xs text-slate-600">—</span>
+              const profit = (b.totalAmount || 0) - cost
+              return (
+                <div>
+                  <p className="text-[11px] text-slate-500">Cost: ₹{cost.toLocaleString('en-IN')}</p>
+                  <p className={`text-xs font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {profit >= 0 ? `+₹${profit.toLocaleString('en-IN')}` : `-₹${Math.abs(profit).toLocaleString('en-IN')}`}
+                  </p>
+                </div>
+              )
+            },
+          },
         ]}
-        fetchUrl={(page, q) => `/api/bookings?q=${encodeURIComponent(q)}&page=${page}`}
+        fetchUrl={(page, q, extra) => {
+          let url = `/api/bookings?q=${encodeURIComponent(q)}&page=${page}`
+          if (extra) url += `&status=${encodeURIComponent(extra)}`
+          return url
+        }}
         searchPlaceholder="Search name, phone, booking ID…"
         emptyTitle="No bookings yet"
         emptyHint="Website booking requests and new leads converted to bookings will appear here."

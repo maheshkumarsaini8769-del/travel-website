@@ -14,6 +14,21 @@ export const metadata: Metadata = {
   description:
     'Current Sunsky Tourism offers — festive season sale, honeymoon specials, group deals, Dubai flash sales and loyalty discounts. Limited periods, real savings.',
   alternates: { canonical: '/offers' },
+  openGraph: {
+    title: 'Offers & Deals | Sunsky Tourism',
+    description: 'Current Sunsky Tourism offers — festive season sale, honeymoon specials, group deals, Dubai flash sales and loyalty discounts. Limited periods, real savings.',
+    url: 'https://www.sunskytourism.in/offers',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Offers & Deals | Sunsky Tourism',
+    description: 'Current Sunsky Tourism offers — festive season sale, honeymoon specials, group deals, Dubai flash sales and loyalty discounts. Limited periods, real savings.',
+    images: ['/images/og-default.jpg'],
+  },
 }
 
 export default function OffersPage() {
@@ -62,7 +77,7 @@ export default function OffersPage() {
                     ) : null}
                   </div>
                   <div className="flex flex-1 flex-col p-6">
-                    <h2 className="text-lg font-bold text-white">{offer.title}</h2>
+                    <h3 className="text-lg font-bold text-white">{offer.title}</h3>
                     <p className="mt-2 flex-1 text-sm leading-relaxed text-slate-400">{offer.description}</p>
                     <div className="mt-4 flex items-center justify-between rounded-2xl border border-dashed border-orange-400/40 bg-orange-500/5 px-4 py-3">
                       <div>

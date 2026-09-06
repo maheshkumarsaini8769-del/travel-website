@@ -13,6 +13,21 @@ export const metadata: Metadata = {
   description:
     'Honest, practical travel guides — best time to visit, itinerary ideas, food guides and family travel tips from the team behind Sunsky Tourism, Sikar.',
   alternates: { canonical: '/travel-guides' },
+  openGraph: {
+    title: 'Travel Guides | Sunsky Tourism',
+    description: 'Honest, practical travel guides — best time to visit, itinerary ideas, food guides and family travel tips from the team behind Sunsky Tourism, Sikar.',
+    url: 'https://www.sunskytourism.in/travel-guides',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Travel Guides | Sunsky Tourism',
+    description: 'Honest, practical travel guides — best time to visit, itinerary ideas, food guides and family travel tips from the team behind Sunsky Tourism, Sikar.',
+    images: ['/images/og-default.jpg'],
+  },
 }
 
 export default async function TravelGuidesPage() {

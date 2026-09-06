@@ -10,6 +10,21 @@ export const metadata: Metadata = {
   description:
     'Tell us your destination, dates and budget — our travel experts in Sikar craft a personalised itinerary and confirm it with you on WhatsApp. Free consultation.',
   alternates: { canonical: '/plan-your-trip' },
+  openGraph: {
+    title: 'Plan Your Trip | Sunsky Tourism',
+    description: 'Tell us your destination, dates and budget — our travel experts in Sikar craft a personalised itinerary and confirm it with you on WhatsApp. Free consultation.',
+    url: 'https://www.sunskytourism.in/plan-your-trip',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Plan Your Trip | Sunsky Tourism',
+    description: 'Tell us your destination, dates and budget — our travel experts in Sikar craft a personalised itinerary and confirm it with you on WhatsApp. Free consultation.',
+    images: ['/images/og-default.jpg'],
+  },
 }
 
 const steps = [

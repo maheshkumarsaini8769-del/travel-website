@@ -41,6 +41,7 @@ const empty: FormState = {
   hotelCategories: '',
   transportation: '',
   featured: false,
+  twoWayPrice: 0,
   status: 'published',
   availableDates: [],
   maxTravellers: 0,
@@ -71,6 +72,7 @@ function fromForm(f: FormState): FormState {
     rating: Number(f.rating) || 0,
     reviewCount: Number(f.reviewCount) || 0,
     featured: Boolean(f.featured),
+    twoWayPrice: Number(f.twoWayPrice) || 0,
     status: f.status ?? 'published',
     maxTravellers: Number(f.maxTravellers) || 0,
     itinerary: f.itinerary
@@ -387,6 +389,16 @@ export default function PackageForm({ initial, editableId }: { initial?: TravelP
           </Field>
           <Field label="Currency">
             <input value={form.currency} onChange={(e) => update('currency', e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Round trip price (₹) — 2-way">
+            <input
+              type="number"
+              min={0}
+              value={form.twoWayPrice || ''}
+              onChange={(e) => update('twoWayPrice', e.target.value === '' ? 0 : Number(e.target.value))}
+              placeholder="0 = no round trip option"
+              className={inputCls}
+            />
           </Field>
           <Field label="Price basis">
             <input value={form.basis} onChange={(e) => update('basis', e.target.value)} placeholder="per person" className={inputCls} />

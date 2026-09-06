@@ -14,18 +14,15 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       setOk(true)
       return
     }
+    // Only check auth once on mount, not on every navigation
     fetch('/api/reviews?all=1')
       .then((r) => {
-        if (r.ok) {
-          setOk(true)
-        } else {
-          router.replace('/admin/login')
-        }
+        if (r.ok) setOk(true)
+        else router.replace('/admin/login')
       })
-      .catch(() => {
-        setOk(true)
-      })
-  }, [pathname, router])
+      .catch(() => setOk(true))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!ok) return null
 

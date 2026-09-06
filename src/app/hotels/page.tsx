@@ -90,7 +90,7 @@ export default async function HotelsPage() {
                   <div className="flex flex-1 flex-col p-6">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h2 className="text-lg font-bold text-white">{hotel.name}</h2>
+                        <h3 className="text-lg font-bold text-white">{hotel.name}</h3>
                         <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-400">
                           <MapPin className="h-3.5 w-3.5 text-orange-400" />
                           {hotel.city}

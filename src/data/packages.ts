@@ -41,6 +41,7 @@ export interface TravelPackage {
   hotelCategories: string
   transportation: string
   featured: boolean
+  twoWayPrice: number
 }
 
 export const packages: TravelPackage[] = [
@@ -117,6 +118,7 @@ export const packages: TravelPackage[] = [
     hotelCategories: 'Heritage & 3-star category hotels',
     transportation: 'Private air-conditioned cab with an experienced driver throughout the tour.',
     featured: true,
+    twoWayPrice: 28999,
   },
   {
     id: 'goa-holiday',
@@ -184,6 +186,7 @@ export const packages: TravelPackage[] = [
     hotelCategories: '3-star beach resorts',
     transportation: 'Private cab for sightseeing with pickup and drop from the airport or railway station.',
     featured: false,
+    twoWayPrice: 23999,
   },
   {
     id: 'kashmir-escape',
@@ -262,6 +265,7 @@ export const packages: TravelPackage[] = [
     hotelCategories: 'Houseboat + 3-star valley hotels',
     transportation: 'Private cab with local driver familiar with the mountain routes.',
     featured: false,
+    twoWayPrice: 32999,
   },
   {
     id: 'dubai-experience',
@@ -335,6 +339,7 @@ export const packages: TravelPackage[] = [
     hotelCategories: '4-star city hotels',
     transportation: 'Airport transfers and private city tours arranged by our team.',
     featured: false,
+    twoWayPrice: 84999,
   },
   {
     id: 'himachal-adventure',
@@ -408,6 +413,7 @@ export const packages: TravelPackage[] = [
     hotelCategories: '3-star mountain hotels',
     transportation: 'Private cab through the mountain routes with experienced driver.',
     featured: false,
+    twoWayPrice: 25999,
   },
 ]
 

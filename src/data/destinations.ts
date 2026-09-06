@@ -172,23 +172,6 @@ export const destinations: Destination[] = [
     experience:
       'Watch the Burj Khalifa light up over a dinner cruise, then swap the skyline for star-lit desert dunes the next evening.',
   },
-  {
-    id: 'international',
-    name: 'International',
-    region: 'Worldwide',
-    category: 'International',
-    tagline: 'Global Destinations',
-    description: 'Curated tours across the world\u2019s most loved cities.',
-    overview:
-      'Beyond India, we plan journeys across the globe — from the streets of Paris to the islands of Southeast Asia. Flights, stays, visas and experiences, handled end to end.',
-    image: destinationImages.international,
-    gallery: destinationGalleries.international,
-    highlights: ['Visa Assistance', 'Flight Booking', 'Hotel Stays', 'Guided Tours', 'Travel Insurance'],
-    popularPlaces: ['Paris', 'Singapore', 'Bali', 'Thailand', 'Maldives'],
-    bestTime: 'Varies by destination',
-    experience:
-      'Tell us where you want to go and let our team handle the flights, visas, stays and every detail in between.',
-  },
 ]
 
 export const destinationById = (id: string) => destinations.find((d) => d.id === id)

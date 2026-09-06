@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import Script from 'next/script'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import SiteChrome from '@/components/layout/SiteChrome'
 import MotionProvider from '@/components/layout/MotionProvider'
@@ -126,7 +126,6 @@ export default async function RootLayout({
         <link rel="icon" href="/images/logo.png" type="image/png" sizes="any" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#f97316" />
       </head>
       <body className={`${inter.className} bg-[#070707] text-slate-100 antialiased`}>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />

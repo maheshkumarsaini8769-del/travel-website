@@ -15,6 +15,21 @@ export const metadata: Metadata = {
   title: 'Search | Sunsky Tourism',
   description: 'Search destinations, tours, holiday packages and travel guides on Sunsky Tourism.',
   alternates: { canonical: '/search' },
+  openGraph: {
+    title: 'Search | Sunsky Tourism',
+    description: 'Search destinations, tours, holiday packages and travel guides on Sunsky Tourism.',
+    url: 'https://www.sunskytourism.in/search',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Search | Sunsky Tourism',
+    description: 'Search destinations, tours, holiday packages and travel guides on Sunsky Tourism.',
+    images: ['/images/og-default.jpg'],
+  },
 }
 
 const typeIcon: Record<SearchItem['type'], typeof Compass> = {

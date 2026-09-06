@@ -14,6 +14,21 @@ export const metadata: Metadata = {
   description:
     'Travelled with Sunsky Tourism? Share your review and rating — every genuine feedback helps other travellers plan a better trip.',
   alternates: { canonical: '/feedback' },
+  openGraph: {
+    title: 'Share Your Feedback | Sunsky Tourism',
+    description: 'Travelled with Sunsky Tourism? Share your review and rating — every genuine feedback helps other travellers plan a better trip.',
+    url: 'https://www.sunskytourism.in/feedback',
+    siteName: 'Sunsky Tourism',
+    images: [{ url: '/images/og-default.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Share Your Feedback | Sunsky Tourism',
+    description: 'Travelled with Sunsky Tourism? Share your review and rating — every genuine feedback helps other travellers plan a better trip.',
+    images: ['/images/og-default.jpg'],
+  },
 }
 
 export default async function FeedbackPage() {

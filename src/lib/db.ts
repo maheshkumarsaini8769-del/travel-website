@@ -11,7 +11,14 @@ let indexesDone = false
 export function getDb(): Promise<Db> {
   if (!uri) throw new Error('MONGODB_URI is not set')
   if (!dbPromise) {
-    client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 })
+    client = new MongoClient(uri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 5000,
+      socketTimeoutMS: 10000,
+      maxPoolSize: 5,
+      minPoolSize: 1,
+      retryWrites: true,
+    })
     dbPromise = client
       .connect()
       .then((c) => c.db(DB_NAME))
@@ -71,6 +78,11 @@ export function ensureIndexesOnce(): void {
   if (indexesDone || !uri) return
   indexesDone = true
   getDb().then(ensureIndexes).catch(() => {})
+}
+
+// Eagerly start MongoDB connection on module load (avoids cold-start delay on first request)
+if (uri) {
+  getDb().catch(() => {})
 }
 
 // ---------------------------------------------------------------------------
@@ -155,6 +167,7 @@ export interface BookingDoc {
   status: BookingStatus
   source: 'website' | 'whatsapp' | 'call' | 'walk-in' | 'admin'
   notes?: string
+  cost?: number
   createdAt: number
   updatedAt: number
 }
@@ -312,6 +325,44 @@ export interface AnalyticsEventDoc {
   timestamp: number
 }
 
+export interface TourDoc {
+  _id: string
+  id: string
+  slug: string
+  title: string
+  destinationId: string
+  destination: string
+  category: string
+  durationLabel: string
+  hours: number
+  tourType: string
+  language: string
+  pickup: string
+  groupSize: string
+  price: number
+  originalPrice: number
+  twoWayPrice: number
+  cost: number
+  priceLabel: string
+  availability: string
+  cancellation: string
+  meetingPoint: string
+  accessibility: string
+  tagline: string
+  description: string
+  overview: string
+  images: string[]
+  highlights: string[]
+  itinerary: { title: string; time?: string; text: string }[]
+  inclusions: string[]
+  exclusions: string[]
+  bestFor: string[]
+  whatToCarry: string[]
+  faqs: { question: string; answer: string }[]
+  createdAt: number
+  updatedAt: number
+}
+
 export interface SessionDoc {
   _id: string
   visitorId: string
@@ -386,4 +437,7 @@ export function sessionsCollection() {
 }
 export function settingsCollection() {
   return getDb().then((db) => db.collection<SettingDoc>('settings'))
+}
+export function toursCollection() {
+  return getDb().then((db) => db.collection<TourDoc>('tours'))
 }

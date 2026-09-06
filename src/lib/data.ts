@@ -11,6 +11,23 @@ import {
   type HotelDoc,
 } from './db'
 
+// ---------------------------------------------------------------------------
+// In-memory cache (resets on cold start; 60 s TTL is enough for dev + prod)
+// ---------------------------------------------------------------------------
+interface CacheEntry<T> { data: T; ts: number }
+const cache = new Map<string, CacheEntry<unknown>>()
+const CACHE_TTL = 60_000
+
+function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const hit = cache.get(key) as CacheEntry<T> | undefined
+  if (hit && Date.now() - hit.ts < CACHE_TTL) return Promise.resolve(hit.data)
+  return fn().then((data) => { cache.set(key, { data, ts: Date.now() }); return data })
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))])
+}
+
 function toPublic(doc: PackageDoc): TravelPackage {
   const { _id, status, availableDates, maxTravellers, seoTitle, seoDescription, createdAt, updatedAt, ...rest } = doc
   void _id
@@ -43,16 +60,18 @@ function destToPublic(doc: DestinationDoc): Destination {
 }
 
 export async function getPackages(): Promise<TravelPackage[]> {
-  try {
-    const col = await packagesCollection()
-    const docs = await col.find({ status: { $nin: ['draft', 'archived'] } }).toArray()
-    const byId = new Map<string, TravelPackage>()
-    for (const p of staticPackages) byId.set(p.id, p)
-    for (const d of docs) byId.set(d.id, toPublic(d))
-    return [...byId.values()]
-  } catch {
-    return staticPackages
-  }
+  return cached('packages:all', async () => {
+    try {
+      const col = await withTimeout(packagesCollection(), 3000)
+      const docs = await withTimeout(col.find({ status: { $nin: ['draft', 'archived'] } }).toArray(), 3000)
+      const byId = new Map<string, TravelPackage>()
+      for (const p of staticPackages) byId.set(p.id, p)
+      for (const d of docs) byId.set(d.id, toPublic(d))
+      return [...byId.values()]
+    } catch {
+      return staticPackages
+    }
+  })
 }
 
 export async function getPackageById(id: string, includeAll = false): Promise<TravelPackage | null> {
@@ -79,22 +98,24 @@ export async function listDatabasePackages(): Promise<TravelPackage[]> {
 }
 
 export async function getDestinations(): Promise<Destination[]> {
-  try {
-    const col = await destinationsCollection()
-    const docs = await col.find({ status: { $nin: ['draft'] } }).toArray()
-    const byId = new Map<string, Destination>()
-    for (const d of staticDestinations) byId.set(d.id, d)
-    for (const doc of docs) byId.set(doc.slug, destToPublic(doc))
-    return [...byId.values()]
-  } catch {
-    return staticDestinations
-  }
+  return cached('destinations:all', async () => {
+    try {
+      const col = await withTimeout(destinationsCollection(), 3000)
+      const docs = await withTimeout(col.find({ status: { $nin: ['draft'] } }).toArray(), 3000)
+      const byId = new Map<string, Destination>()
+      for (const d of staticDestinations) byId.set(d.id, d)
+      for (const doc of docs) byId.set(doc.slug, destToPublic(doc))
+      return [...byId.values()]
+    } catch {
+      return staticDestinations
+    }
+  })
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
   try {
-    const col = await destinationsCollection()
-    const doc = await col.findOne({ _id: slug, status: { $nin: ['draft'] } })
+    const col = await withTimeout(destinationsCollection(), 3000)
+    const doc = await withTimeout(col.findOne({ _id: slug, status: { $nin: ['draft'] } }), 3000)
     if (doc) return destToPublic(doc)
   } catch {
     // fall through to static
@@ -108,23 +129,27 @@ export async function listDatabaseDestinations(): Promise<DestinationDoc[]> {
 }
 
 export async function getReviews(): Promise<ReviewDoc[]> {
-  try {
-    const col = await reviewsCollection()
-    const docs = await col.find({ approved: true }).sort({ createdAt: -1 }).limit(12).toArray()
-    return docs
-  } catch {
-    return []
-  }
+  return cached('reviews:approved', async () => {
+    try {
+      const col = await withTimeout(reviewsCollection(), 3000)
+      const docs = await withTimeout(col.find({ approved: true }).sort({ createdAt: -1 }).limit(12).toArray(), 3000)
+      return docs
+    } catch {
+      return []
+    }
+  })
 }
 
 export async function getHotels(): Promise<HotelDoc[]> {
-  try {
-    const col = await hotelsCollection()
-    const docs = await col.find({ status: { $nin: ['draft'] } }).toArray()
-    return docs
-  } catch {
-    return []
-  }
+  return cached('hotels:published', async () => {
+    try {
+      const col = await withTimeout(hotelsCollection(), 3000)
+      const docs = await withTimeout(col.find({ status: { $nin: ['draft'] } }).toArray(), 3000)
+      return docs
+    } catch {
+      return []
+    }
+  })
 }
 
 export async function getHotelsPublic() {

@@ -96,12 +96,25 @@ export function mergeSettings(docs: { _id: string; value: SettingValue }[]): Sit
   return merged as unknown as SiteSettings
 }
 
+let settingsCache: { data: SiteSettings; ts: number } | null = null
+const CACHE_TTL = 60_000 // 1 minute
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))])
+}
+
 export async function getSettings(): Promise<SiteSettings> {
+  if (settingsCache && Date.now() - settingsCache.ts < CACHE_TTL) {
+    return settingsCache.data
+  }
   try {
-    const col = await settingsCollection()
-    const docs = await col.find().toArray()
-    return mergeSettings(docs)
+    const col = await withTimeout(settingsCollection(), 2000)
+    const docs = await withTimeout(col.find().toArray(), 2000) as any[]
+    const data = mergeSettings(docs)
+    settingsCache = { data, ts: Date.now() }
+    return data
   } catch {
+    if (settingsCache) return settingsCache.data
     return structuredClone(defaultSettings)
   }
 }

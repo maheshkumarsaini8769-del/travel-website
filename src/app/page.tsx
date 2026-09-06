@@ -1,7 +1,6 @@
 import dynamic from 'next/dynamic'
 import type { Metadata } from 'next'
 import Hero from '@/components/home/Hero'
-import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'Sunsky Tourism — Explore More. Worry Less.',
@@ -59,10 +58,6 @@ const marqueeItems = [
 export default function Home() {
   return (
     <>
-      <Script 
-        src="https://aistudio.zenuxs.site/inter/widget.js?token=zinter-8c86b5d3245341c2b4fda3c47242b42b"
-        strategy="afterInteractive"
-      />
       <Hero />
       <div className="border-y border-white/5 bg-white/[0.02] py-5">
         <Marquee items={marqueeItems} speed={38} />

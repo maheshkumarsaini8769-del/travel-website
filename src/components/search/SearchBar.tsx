@@ -66,20 +66,11 @@ export default function SearchBar() {
 
   const navigate = useCallback(
     (href: string) => {
-      if (window.history.state?.type === SEARCH_MARKER) {
-        let done = false
-        const nav = () => {
-          if (done) return
-          done = true
-          router.push(href)
-        }
-        window.addEventListener('popstate', nav, { once: true })
-        window.history.back()
-        window.setTimeout(nav, 500)
-      } else {
-        router.push(href)
-      }
       setOpen(false)
+      if (window.history.state?.type === SEARCH_MARKER) {
+        window.history.back()
+      }
+      router.push(href)
     },
     [router]
   )
