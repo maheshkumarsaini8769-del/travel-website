@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
-import { Building2, Compass, FileText, Home, Megaphone, PanelBottom, Share2, Search, Wallet, Shield, Eye, EyeOff } from 'lucide-react'
+import { Building2, Compass, FileText, Home, Megaphone, PanelBottom, Share2, Search, Wallet, Shield, Trash2, Plus, Mail } from 'lucide-react'
 import { Button, Field, PageHeader, Spinner, useToast } from '@/components/admin/ui'
 import type { SiteSettings } from '@/lib/settings'
 
@@ -17,7 +17,7 @@ const TABS: { key: SectionKey | 'security'; label: string; icon: typeof Home }[]
   { key: 'social', label: 'Social', icon: Share2 },
   { key: 'seo', label: 'SEO', icon: Search },
   { key: 'booking', label: 'Booking Rules', icon: Wallet },
-  { key: 'security', label: 'Security', icon: Shield },
+  { key: 'security', label: 'Admin Emails', icon: Shield },
 ]
 
 const FieldCtx = createContext<{ section: Record<string, EditorValue>; setField: (key: string, value: EditorValue) => void }>({ section: {}, setField: () => {} })
@@ -248,131 +248,131 @@ export default function SettingsPage() {
 
 function SecurityTab() {
   const { toast } = useToast()
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showCurrent, setShowCurrent] = useState(false)
-  const [showNew, setShowNew] = useState(false)
+  const [emails, setEmails] = useState<{ email: string; name: string; role: string; active: boolean }[]>([])
+  const [loading, setLoading] = useState(true)
+  const [newEmail, setNewEmail] = useState('')
+  const [newName, setNewName] = useState('')
   const [busy, setBusy] = useState(false)
-  const [hasPassword, setHasPassword] = useState<boolean | null>(null)
 
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((d) => setHasPassword(d?.hasPassword ?? false))
-      .catch(() => setHasPassword(false))
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/users')
+      if (res.ok) {
+        const data = await res.json()
+        setEmails(data.map((u: any) => ({ email: u.email, name: u.name, role: u.role, active: u.active })))
+      }
+    } catch {}
+    setLoading(false)
   }, [])
 
-  const changePassword = async () => {
-    if (!newPassword) {
-      toast('error', 'Enter a new password')
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      toast('error', 'New passwords do not match')
-      return
-    }
-    if (newPassword.length < 6) {
-      toast('error', 'New password must be at least 6 characters')
-      return
-    }
-    if (hasPassword && !currentPassword) {
-      toast('error', 'Current password is required')
+  useEffect(() => { void load() }, [load])
+
+  const addEmail = async () => {
+    if (!newEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+      toast('error', 'Valid email required')
       return
     }
     setBusy(true)
     try {
-      const res = await fetch('/api/auth/change-password', {
+      const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({ email: newEmail.trim().toLowerCase(), name: newName.trim() || newEmail.split('@')[0], role: 'manager' }),
       })
-      const data = await res.json()
       if (res.ok) {
-        toast('success', 'Password changed successfully')
-        setCurrentPassword('')
-        setNewPassword('')
-        setConfirmPassword('')
-        setHasPassword(true)
+        toast('success', 'Admin added — they can now login via Google OAuth')
+        setNewEmail('')
+        setNewName('')
+        await load()
       } else {
-        toast('error', data.error ?? 'Failed to change password')
+        const j = await res.json().catch(() => null)
+        toast('error', j?.error ?? 'Failed to add')
       }
-    } catch {
-      toast('error', 'Network error')
-    } finally {
-      setBusy(false)
-    }
+    } catch { toast('error', 'Failed') }
+    setBusy(false)
+  }
+
+  const removeEmail = async (email: string) => {
+    try {
+      const res = await fetch(`/api/admin/users?email=${encodeURIComponent(email)}`, { method: 'DELETE' })
+      if (res.ok) {
+        toast('success', 'Removed')
+        await load()
+      } else {
+        const j = await res.json().catch(() => null)
+        toast('error', j?.error ?? 'Failed')
+      }
+    } catch { toast('error', 'Failed') }
   }
 
   return (
-    <div className="max-w-md">
-      <h3 className="text-lg font-bold text-white">{hasPassword ? 'Change Password' : 'Set Password'}</h3>
+    <div className="max-w-lg">
+      <h3 className="text-lg font-bold text-white">Admin Emails</h3>
       <p className="mt-1 text-sm text-slate-400">
-        {hasPassword
-          ? 'Update your admin login password.'
-          : 'You logged in via OAuth. Set a password to also enable email login.'}
+        Only these emails can login via Google OAuth. No passwords needed.
       </p>
 
-      <div className="mt-6 space-y-4">
-        {hasPassword && (
-          <Field label="Current password">
-            <div className="relative">
-              <input
-                type={showCurrent ? 'text' : 'password'}
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-                className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 pr-11 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-              >
-                {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </Field>
-        )}
-
-        <Field label="New password">
-          <div className="relative">
-            <input
-              type={showNew ? 'text' : 'password'}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password (min 6 characters)"
-              className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 pr-11 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
-            />
-            <button
-              type="button"
-              onClick={() => setShowNew(!showNew)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-            >
-              {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
-        </Field>
-
-        <Field label="Confirm new password">
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Re-enter new password"
-            className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
-          />
-        </Field>
+      <div className="mt-6 flex gap-2">
+        <input
+          type="email"
+          value={newEmail}
+          onChange={(e) => setNewEmail(e.target.value)}
+          placeholder="admin@example.com"
+          onKeyDown={(e) => e.key === 'Enter' && addEmail()}
+          className="flex-1 rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
+        />
+        <input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder="Name (optional)"
+          onKeyDown={(e) => e.key === 'Enter' && addEmail()}
+          className="w-40 rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 outline-none transition-colors focus:border-orange-400/50"
+        />
+        <button
+          onClick={addEmail}
+          disabled={busy || !newEmail.trim()}
+          className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-400 disabled:opacity-40"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
       </div>
 
-      <button
-        onClick={changePassword}
-        disabled={busy || !newPassword || !confirmPassword}
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {busy ? 'Saving…' : hasPassword ? 'Change Password' : 'Set Password'}
-        <Shield className="h-4 w-4" />
-      </button>
+      {loading ? (
+        <Spinner label="Loading…" />
+      ) : (
+        <div className="mt-6 space-y-2">
+          {emails.map((a) => (
+            <div key={a.email} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+              <div className="flex items-center gap-3">
+                <span className="rounded-full bg-white/5 p-2 text-slate-400">
+                  <Mail className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-white">{a.email}</p>
+                  <p className="text-[11px] text-slate-500">{a.name} · {a.role}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${a.active ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}`}>
+                  {a.active ? 'Active' : 'Disabled'}
+                </span>
+                <button
+                  onClick={() => removeEmail(a.email)}
+                  className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-1.5 text-rose-300 hover:bg-rose-500/20"
+                  title="Remove"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+          {emails.length === 0 && (
+            <p className="py-8 text-center text-sm text-slate-500">No admin emails yet. Add one above.</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

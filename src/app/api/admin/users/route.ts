@@ -31,16 +31,13 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const email = String(body?.email ?? '').trim().toLowerCase()
-    const password = String(body?.password ?? '')
     const name = String(body?.name ?? '').trim() || email.split('@')[0]
     const role = (String(body?.role ?? 'manager') as AdminRole)
-    const permissions = Array.isArray(body?.permissions) ? body.permissions.map(String) : []
     const active = body?.active !== false
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return Response.json({ error: 'Valid email is required' }, { status: 400 })
     }
-    if (password.length < 8) return Response.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
     if (!['superadmin', 'manager', 'booking-staff', 'content-manager'].includes(role)) {
       return Response.json({ error: 'Invalid role' }, { status: 400 })
     }
@@ -49,7 +46,7 @@ export async function POST(req: NextRequest) {
     const existing = await col.findOne({ email })
     if (existing) return Response.json({ error: 'Email already exists' }, { status: 409 })
 
-    const { salt, hash } = hashPassword(password)
+    const { salt, hash } = hashPassword(crypto.randomUUID().slice(0, 12))
     const id = crypto.randomUUID()
     await col.insertOne({
       _id: id,
@@ -58,7 +55,7 @@ export async function POST(req: NextRequest) {
       salt,
       name,
       role,
-      permissions,
+      permissions: [],
       active,
       createdAt: Date.now(),
     })
@@ -66,5 +63,30 @@ export async function POST(req: NextRequest) {
     return Response.json({ ok: true, id }, { status: 201 })
   } catch {
     return Response.json({ error: 'Bad request' }, { status: 400 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const denied = await requireAdmin('admin.users.delete')
+  if (denied) return denied
+  const actor = await getCurrentAdmin()
+  const email = req.nextUrl.searchParams.get('email')
+  if (!email) return Response.json({ error: 'email required' }, { status: 400 })
+
+  try {
+    const col = await adminsCollection()
+    const doc = await col.findOne({ email: email.toLowerCase() })
+    if (!doc) return Response.json({ error: 'Not found' }, { status: 404 })
+
+    const superadmins = await col.countDocuments({ role: 'superadmin', active: true })
+    if (doc.role === 'superadmin' && superadmins <= 1) {
+      return Response.json({ error: 'Cannot remove the last superadmin' }, { status: 400 })
+    }
+
+    await col.deleteOne({ _id: doc._id })
+    if (actor) void audit(actor.email, 'user.deleted', 'admin-users', doc._id, { email })
+    return Response.json({ ok: true })
+  } catch {
+    return Response.json({ error: 'Database unavailable' }, { status: 503 })
   }
 }

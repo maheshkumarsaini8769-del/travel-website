@@ -36,7 +36,7 @@ export default function AdminUsersPage() {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [toDelete, setToDelete] = useState<AdminUser | null>(null)
-  const [form, setForm] = useState({ email: '', name: '', role: 'manager', password: '', active: true })
+  const [form, setForm] = useState({ email: '', name: '', role: 'manager', active: true })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -60,10 +60,6 @@ export default function AdminUsersPage() {
       toast('error', 'Valid email is required')
       return
     }
-    if (form.password.length < 8) {
-      toast('error', 'Password must be at least 8 characters')
-      return
-    }
     setBusy(true)
     try {
       const res = await fetch('/api/admin/users', {
@@ -76,9 +72,9 @@ export default function AdminUsersPage() {
         toast('error', j?.error ?? 'Create failed')
         return
       }
-      toast('success', 'User created')
+      toast('success', 'User created — they can login via Google OAuth')
       setOpen(false)
-      setForm({ email: '', name: '', role: 'manager', password: '', active: true })
+      setForm({ email: '', name: '', role: 'manager', active: true })
       await load()
     } finally {
       setBusy(false)
@@ -176,9 +172,6 @@ export default function AdminUsersPage() {
             <select value={form.role} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none">
               {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label} — {r.hint}</option>)}
             </select>
-          </Field>
-          <Field label="Password" hint="At least 8 characters">
-            <input type="password" value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} className="w-full rounded-xl border border-white/10 bg-[#0d0d10] px-4 py-2.5 text-sm text-slate-100 outline-none focus:border-orange-400/50" autoComplete="new-password" />
           </Field>
           <label className="inline-flex cursor-pointer items-center gap-3">
             <input type="checkbox" checked={form.active} onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))} className="h-4 w-4 accent-orange-500" />
