@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const CANONICAL_HOST = 'www.sunskytourism.in'
+const ALLOWED_HOSTS = [
+  'travel-website-livid-three.vercel.app',
+  'travel-website-lhhmxvdex-maheshkumarsaini8769-dels-projects.vercel.app',
+  'travel-website-5x88w848t-maheshkumarsaini8769-dels-projects.vercel.app',
+  'localhost',
+]
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const host = (request.headers.get('host') ?? '').split(':')[0].toLowerCase()
   const isLocal = host === 'localhost' || host.endsWith('.local')
+  const isAllowed = ALLOWED_HOSTS.some((h) => host === h || host.endsWith('.' + h))
 
   const target = request.nextUrl.clone()
-  if (!isLocal && host !== CANONICAL_HOST) {
+  if (!isLocal && !isAllowed && host !== CANONICAL_HOST) {
     target.protocol = 'https:'
     target.host = CANONICAL_HOST
   }
