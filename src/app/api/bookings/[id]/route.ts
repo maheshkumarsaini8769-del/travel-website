@@ -75,6 +75,7 @@ export async function PUT(req: NextRequest, ctx: { params: { id: string } }) {
     if (body?.notes !== undefined) set.notes = asOptionalString(body.notes, 2000)
     if (body?.travelDate !== undefined) set.travelDate = asOptionalString(body.travelDate, 20)
     if (body?.totalAmount !== undefined) set.totalAmount = Math.max(0, asNumber(body.totalAmount))
+    if (body?.actualCost !== undefined) set.actualCost = Math.max(0, asNumber(body.actualCost))
 
     // Add a payment record + advance paidAmount
     if (body?.payment !== undefined && typeof body.payment === 'object') {

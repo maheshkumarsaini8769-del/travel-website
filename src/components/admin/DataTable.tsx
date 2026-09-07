@@ -21,6 +21,10 @@ export function useListData<T>(url: (page: number, q: string, extra: string) => 
   const [error, setError] = useState('')
   const seq = useRef(0)
 
+  useEffect(() => { setExtraState(extra) }, [extra])
+
+  useEffect(() => { setPage(1) }, [extraState])
+
   const debouncedQ = useDebounce(q, 350)
 
   const reload = useCallback(async () => {

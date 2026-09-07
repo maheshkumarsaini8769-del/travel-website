@@ -26,6 +26,7 @@ interface PublicBooking {
   travellers: number
   totalAmount: number
   paidAmount: number
+  actualCost?: number
   paymentStatus: string
   status: string
   source: string
@@ -172,20 +173,8 @@ export default function AdminBookings() {
           { key: 'source', label: 'Source', render: (b) => <span className="text-xs text-slate-500">{b.source || 'website'}</span> },
           {
             key: 'cost',
-            label: 'Profit',
-            render: (b) => {
-              const cost = (b as any).cost || 0
-              if (!cost) return <span className="text-xs text-slate-600">—</span>
-              const profit = (b.totalAmount || 0) - cost
-              return (
-                <div>
-                  <p className="text-[11px] text-slate-500">Cost: ₹{cost.toLocaleString('en-IN')}</p>
-                  <p className={`text-xs font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {profit >= 0 ? `+₹${profit.toLocaleString('en-IN')}` : `-₹${Math.abs(profit).toLocaleString('en-IN')}`}
-                  </p>
-                </div>
-              )
-            },
+            label: 'Cost / Profit',
+            render: (b) => <CostCell booking={b} onSaved={() => setRefreshKey((k) => k + 1)} />,
           },
         ]}
         fetchUrl={(page, q, extra) => {
@@ -215,6 +204,64 @@ export default function AdminBookings() {
         title="Delete booking?"
         message={`${toDelete?.bookingId} — ${toDelete?.customer?.name}. This cannot be undone.`}
       />
+    </div>
+  )
+}
+
+function CostCell({ booking, onSaved }: { booking: PublicBooking; onSaved: () => void }) {
+  const [editing, setEditing] = useState(false)
+  const [val, setVal] = useState(String(booking.actualCost ?? ''))
+  const [saving, setSaving] = useState(false)
+  const { toast } = useToast()
+
+  const save = async () => {
+    const num = Number(val)
+    if (isNaN(num) || num < 0) { toast('error', 'Enter valid cost'); return }
+    setSaving(true)
+    const res = await fetch(`/api/bookings/${booking._id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actualCost: num }),
+    })
+    setSaving(false)
+    if (res.ok) { toast('success', 'Cost updated'); setEditing(false); onSaved() }
+    else toast('error', 'Failed')
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1">
+        <input
+          type="number"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && save()}
+          autoFocus
+          className="w-20 rounded-lg border border-white/10 bg-[#0d0d10] px-2 py-1 text-xs text-white outline-none focus:border-orange-400/50"
+          placeholder="₹ cost"
+        />
+        <button onClick={save} disabled={saving} className="text-[10px] font-bold text-orange-400 hover:text-orange-300">
+          {saving ? '…' : '✓'}
+        </button>
+        <button onClick={() => setEditing(false)} className="text-[10px] text-slate-500 hover:text-white">✕</button>
+      </div>
+    )
+  }
+
+  const cost = booking.actualCost ?? 0
+  const profit = (booking.totalAmount || 0) - cost
+  return (
+    <div className="cursor-pointer group" onClick={() => { setVal(String(cost || '')); setEditing(true) }}>
+      {cost > 0 ? (
+        <>
+          <p className="text-[11px] text-slate-500">Cost: ₹{cost.toLocaleString('en-IN')}</p>
+          <p className={`text-xs font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+            {profit >= 0 ? `+₹${profit.toLocaleString('en-IN')}` : `-₹${Math.abs(profit).toLocaleString('en-IN')}`}
+          </p>
+        </>
+      ) : (
+        <span className="text-[11px] text-slate-600 group-hover:text-orange-400">+ Add cost</span>
+      )}
     </div>
   )
 }
