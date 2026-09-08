@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-const ALLOWED_EMAIL = 'maheshkumarsaini8769@gmail.com'
 const SCRIPT_URL = 'https://unpkg.com/zenuxs-oauth@7/dist/zenux-oauth.min.js'
 
 export default function AdminLogin() {
@@ -42,11 +41,6 @@ export default function AdminLogin() {
       const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
       const user = await oauth.getUserInfo({ access_token: detail.access_token })
       const email = user?.email ?? ''
-
-      if (email.toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
-        setError('Access denied.')
-        return
-      }
 
       const res = await fetch('/api/auth/login', {
         method: 'POST',
