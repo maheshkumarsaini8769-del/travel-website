@@ -4,43 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 
 const SCRIPT_URL = 'https://unpkg.com/zenuxs-oauth@7/dist/zenux-oauth.min.js'
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Timed out after ${ms / 1000}s`)), ms)
-    promise.then((v) => { clearTimeout(timer); resolve(v) }, (e) => { clearTimeout(timer); reject(e) })
-  })
-}
-
-async function doLogin(email: string, name: string): Promise<{ ok: boolean; error?: string }> {
-  const res = await fetch('/api/auth/login', {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email, name, oauth: true }),
-  })
-  const data = await res.json().catch(() => ({}))
-  if (res.ok) {
-    window.location.replace('/admin')
-    return { ok: true }
-  }
-  return { ok: false, error: data.error ?? 'Login failed.' }
-}
-
-async function processToken(accessToken: string): Promise<{ ok: boolean; error?: string }> {
-  try {
-    if (!(window as any).ZenuxOAuth) {
-      return { ok: false, error: 'OAuth library not loaded. Please refresh.' }
-    }
-    const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
-    const user: any = await withTimeout(oauth.getUserInfo({ access_token: accessToken }), 15000)
-    const email: string = user?.email ?? ''
-    if (!email) return { ok: false, error: 'Could not read email from OAuth response.' }
-    return await doLogin(email, user?.name ?? '')
-  } catch (err: any) {
-    return { ok: false, error: err?.message ?? 'Login failed.' }
-  }
-}
-
 function getTokenFromHash(): string | null {
   if (typeof window === 'undefined') return null
   const hash = window.location.hash
@@ -85,9 +48,14 @@ export default function AdminLogin() {
       processedRef.current = true
       setBusy(true)
       window.history.replaceState(null, '', window.location.pathname)
-      processToken(token).then((r) => {
-        if (!r.ok) { setBusy(false); setError(r.error ?? 'Login failed.') }
-      })
+      const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
+      oauth.getUserInfo({ access_token: token })
+        .then((user: any) => {
+          const email = user?.email ?? ''
+          if (!email) { setBusy(false); setError('Could not read email.'); return }
+          window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(user?.name ?? '')}`
+        })
+        .catch((err: any) => { setBusy(false); setError(err?.message ?? 'Login failed.') })
     } else {
       setReady(true)
     }
@@ -99,8 +67,16 @@ export default function AdminLogin() {
     if (!detail?.access_token) return
     processedRef.current = true
     setBusy(true)
-    const r = await processToken(detail.access_token)
-    if (!r.ok) { setBusy(false); setError(r.error ?? 'Login failed.') }
+    try {
+      const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
+      const user: any = await oauth.getUserInfo({ access_token: detail.access_token })
+      const email = user?.email ?? ''
+      if (!email) { setBusy(false); setError('Could not read email.'); return }
+      window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(user?.name ?? '')}`
+    } catch (err: any) {
+      setBusy(false)
+      setError(err?.message ?? 'Login failed.')
+    }
   }, [])
 
   const handleError = useCallback((e: Event) => {
