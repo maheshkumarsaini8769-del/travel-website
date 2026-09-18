@@ -32,8 +32,8 @@ async function processToken(accessToken: string): Promise<{ ok: boolean; error?:
       return { ok: false, error: 'OAuth library not loaded. Please refresh.' }
     }
     const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
-    const user = await withTimeout(oauth.getUserInfo({ access_token: accessToken }), 15000)
-    const email = user?.email ?? ''
+    const user: any = await withTimeout(oauth.getUserInfo({ access_token: accessToken }), 15000)
+    const email: string = user?.email ?? ''
     if (!email) return { ok: false, error: 'Could not read email from OAuth response.' }
     return await doLogin(email, user?.name ?? '')
   } catch (err: any) {
