@@ -44,12 +44,13 @@ export default function AdminLogin() {
 
       const res = await fetch('/api/auth/login', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email, name: user?.name, oauth: true }),
       })
 
       if (res.ok) {
-        router.replace('/admin')
+        window.location.href = '/admin'
       } else {
         const data = await res.json().catch(() => ({}))
         setError(data.error ?? 'Login failed.')
