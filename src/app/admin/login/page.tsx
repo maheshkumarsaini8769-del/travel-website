@@ -1,19 +1,60 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 
 const SCRIPT_URL = 'https://unpkg.com/zenuxs-oauth@7/dist/zenux-oauth.min.js'
 
+async function processToken(accessToken: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
+    const user = await oauth.getUserInfo({ access_token: accessToken })
+    const email = user?.email ?? ''
+    if (!email) return { ok: false, error: 'Could not read email from OAuth.' }
+
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, name: user?.name, oauth: true }),
+    })
+
+    if (res.ok) {
+      window.location.replace('/admin')
+      return { ok: true }
+    }
+    const data = await res.json().catch(() => ({}))
+    return { ok: false, error: data.error ?? 'Login failed.' }
+  } catch {
+    return { ok: false, error: 'Login failed.' }
+  }
+}
+
 export default function AdminLogin() {
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [redirectUri, setRedirectUri] = useState('')
-  const router = useRouter()
   const authRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     setRedirectUri(`${window.location.origin}/admin/login`)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const hash = window.location.hash
+    if (hash && hash.includes('access_token')) {
+      const params = new URLSearchParams(hash.substring(1))
+      const token = params.get('access_token')
+      if (token) {
+        setBusy(true)
+        processToken(token).then((r) => {
+          if (!r.ok) setError(r.error ?? 'Login failed.')
+        })
+        return
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -36,29 +77,13 @@ export default function AdminLogin() {
   const handleSuccess = useCallback(async (e: Event) => {
     const detail = (e as CustomEvent).detail
     if (!detail?.access_token) return
-
-    try {
-      const oauth = new (window as any).ZenuxOAuth({ clientId: '1fe396337ca4c424' })
-      const user = await oauth.getUserInfo({ access_token: detail.access_token })
-      const email = user?.email ?? ''
-
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, name: user?.name, oauth: true }),
-      })
-
-      if (res.ok) {
-        window.location.href = '/admin'
-      } else {
-        const data = await res.json().catch(() => ({}))
-        setError(data.error ?? 'Login failed.')
-      }
-    } catch {
-      setError('Login failed.')
+    setBusy(true)
+    const r = await processToken(detail.access_token)
+    if (!r.ok) {
+      setBusy(false)
+      setError(r.error ?? 'Login failed.')
     }
-  }, [router])
+  }, [])
 
   const handleError = useCallback((e: Event) => {
     const detail = (e as CustomEvent).detail
@@ -86,7 +111,13 @@ export default function AdminLogin() {
           </p>
         )}
 
-        {scriptLoaded && redirectUri ? (
+        {busy && !error && (
+          <p className="mb-4 rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-3 text-center text-sm font-medium text-orange-400">
+            Signing you in...
+          </p>
+        )}
+
+        {scriptLoaded && redirectUri && !busy ? (
           <zenuxs-auth
             ref={authRef}
             client-id="1fe396337ca4c424"
@@ -97,7 +128,7 @@ export default function AdminLogin() {
             auto-redirect="false"
           />
         ) : (
-          <p className="text-center text-sm text-slate-500">Loading login...</p>
+          !busy && <p className="text-center text-sm text-slate-500">Loading login...</p>
         )}
       </div>
     </div>
