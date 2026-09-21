@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import Footer from './Footer'
 import FloatingButtons from './FloatingButtons'
 import BackToTop from '@/components/ui/BackToTop'
+import ZenuxsAiWidget from '@/components/analytics/ZenuxsAiWidget'
 
 const Navbar = dynamic(() => import('./Navbar'), { ssr: false })
 
@@ -21,6 +22,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       <Footer />
       <FloatingButtons />
       <BackToTop />
+      <ZenuxsAiWidget />
     </>
   )
 }

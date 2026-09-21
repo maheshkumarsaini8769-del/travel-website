@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const SCRIPT_URL = 'https://unpkg.com/zenuxs-oauth@7/dist/zenux-oauth.min.js'
+const SCRIPT_URL = 'https://unpkg.com/zenuxs-oauth@7.0.0/dist/zenux-oauth.min.js'
 const CLIENT_ID = '1fe396337ca4c424'
 
 function decodeJwt(token?: string | null): any {
@@ -69,7 +69,8 @@ async function extractUserInfo(detail: any): Promise<{ email: string; name: stri
   }
 
   // 2. Decode id_token JWT (instant, standard OpenID Connect payload)
-  const idToken = detail?.id_token || detail?.idToken
+  const tokens = detail?.tokens || detail
+  const idToken = tokens?.id_token || tokens?.idToken || detail?.id_token || detail?.idToken
   if (idToken) {
     const payload = decodeJwt(idToken)
     if (payload?.email) {
@@ -81,7 +82,12 @@ async function extractUserInfo(detail: any): Promise<{ email: string; name: stri
   }
 
   // 3. Use access token to fetch user profile
-  const accessToken = detail?.access_token || detail?.accessToken || (typeof detail === 'string' ? detail : null)
+  const accessToken =
+    tokens?.access_token ||
+    tokens?.accessToken ||
+    detail?.access_token ||
+    detail?.accessToken ||
+    (typeof detail === 'string' ? detail : null)
   if (accessToken) {
     // Attempt via ZenuxOAuth SDK instance
     try {
@@ -136,11 +142,14 @@ export default function AdminLogin() {
   const authRef = useRef<HTMLElement | null>(null)
   const processedRef = useRef(false)
 
-  // Redirect to /admin if already logged in
+  // Redirect to /admin if already logged in (silent check avoids 401 console error)
   useEffect(() => {
-    fetch('/api/admin/me', { credentials: 'same-origin', cache: 'no-store' })
-      .then((r) => {
-        if (r.ok) window.location.replace('/admin')
+    fetch('/api/admin/me?check=1', { credentials: 'same-origin', cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.authenticated && (data?.ok || data?.user)) {
+          window.location.replace('/admin')
+        }
       })
       .catch(() => {})
   }, [])
@@ -305,12 +314,42 @@ export default function AdminLogin() {
     el.addEventListener('success', handleSuccess, { capture: true })
     el.addEventListener('auth-success', handleSuccess, { capture: true })
     el.addEventListener('error', handleError, { capture: true })
+
+    const handleWindowMessage = async (event: MessageEvent) => {
+      const data = event.data
+      if (!data || typeof data !== 'object') return
+      const type = String(data.type || '')
+      if (type.includes('zenux_oauth_success') || type.includes('auth_success')) {
+        if (processedRef.current) return
+        processedRef.current = true
+        setBusy(true)
+        setBusyMessage('Completing login...')
+        try {
+          const user = await extractUserInfo(data)
+          if (user?.email) {
+            await executeLogin(user)
+          } else {
+            setBusy(false)
+            processedRef.current = false
+            setError('Could not verify email from authentication.')
+          }
+        } catch (err: any) {
+          setBusy(false)
+          processedRef.current = false
+          setError(err?.message ?? 'Login failed.')
+        }
+      }
+    }
+
+    window.addEventListener('message', handleWindowMessage)
+
     return () => {
       el.removeEventListener('success', handleSuccess, { capture: true })
       el.removeEventListener('auth-success', handleSuccess, { capture: true })
       el.removeEventListener('error', handleError, { capture: true })
+      window.removeEventListener('message', handleWindowMessage)
     }
-  }, [scriptLoaded, handleSuccess, handleError])
+  }, [scriptLoaded, handleSuccess, handleError, executeLogin])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#070707] px-4 py-8">

@@ -138,10 +138,6 @@ export default async function RootLayout({
             <PageTransition>{children}</PageTransition>
           </SiteChrome>
         </MotionProvider>
-        <Script
-          src="https://aistudio.zenuxs.site/inter/widget.js?token=zinter-8c86b5d3245341c2b4fda3c47242b42b"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   )
