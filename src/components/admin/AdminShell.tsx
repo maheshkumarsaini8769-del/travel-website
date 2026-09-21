@@ -7,26 +7,56 @@ import AdminSidebar from '@/components/admin/AdminSidebar'
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [ok, setOk] = useState(false)
+  const isLoginPage = pathname === '/admin/login'
+  const [ok, setOk] = useState(isLoginPage)
+  const [checking, setChecking] = useState(!isLoginPage)
 
   useEffect(() => {
-    if (pathname === '/admin/login') {
+    if (isLoginPage) {
       setOk(true)
+      setChecking(false)
       return
     }
-    // Only check auth once on mount, not on every navigation
-    fetch('/api/admin/me', { credentials: 'same-origin' })
+
+    let active = true
+    setChecking(true)
+
+    fetch('/api/admin/me', { credentials: 'same-origin', cache: 'no-store' })
       .then((r) => {
-        if (r.ok) setOk(true)
-        else router.replace('/admin/login')
+        if (!active) return
+        if (r.ok) {
+          setOk(true)
+          setChecking(false)
+        } else {
+          setOk(false)
+          setChecking(false)
+          router.replace('/admin/login')
+        }
       })
-      .catch(() => router.replace('/admin/login'))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+      .catch(() => {
+        if (!active) return
+        setOk(false)
+        setChecking(false)
+        router.replace('/admin/login')
+      })
 
-  if (!ok) return null
+    return () => {
+      active = false
+    }
+  }, [isLoginPage, pathname, router])
 
-  if (pathname === '/admin/login') return <>{children}</>
+  if (isLoginPage) return <>{children}</>
+
+  if (checking || !ok) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#070707]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+          <p className="text-sm font-medium text-slate-400">Opening Admin Panel...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-[#070707]">

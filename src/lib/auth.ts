@@ -89,12 +89,28 @@ export interface ResolvedAdmin {
 
 export const ENV_ADMIN_ID = 'env-admin'
 
+const adminCache = new Map<string, { admin: ResolvedAdmin; cachedAt: number }>()
+const CACHE_TTL_MS = 60 * 1000 // 60 seconds memory cache
+
+export function clearAdminSessionCache(adminId?: string) {
+  if (adminId) {
+    adminCache.delete(adminId)
+  } else {
+    adminCache.clear()
+  }
+}
+
 async function resolveAdminFromDb(adminId: string): Promise<ResolvedAdmin | null> {
+  const cached = adminCache.get(adminId)
+  if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) {
+    return cached.admin
+  }
+
   try {
     const col = await adminsCollection()
     const doc = await col.findOne({ _id: adminId })
     if (!doc || !doc.active) return null
-    return {
+    const admin: ResolvedAdmin = {
       id: doc._id,
       email: doc.email,
       username: doc.username ?? doc.email,
@@ -103,8 +119,10 @@ async function resolveAdminFromDb(adminId: string): Promise<ResolvedAdmin | null
       permissions: doc.permissions,
       fromDb: true,
     }
+    adminCache.set(adminId, { admin, cachedAt: Date.now() })
+    return admin
   } catch {
-    return null
+    return cached?.admin ?? null
   }
 }
 
@@ -168,24 +186,46 @@ export async function requireAdmin(permission?: string): Promise<Response> {
   return null as never
 }
 
-export function setAdminSessionCookie(adminId: string): void {
-  cookies().set(ADMIN_COOKIE, createAdminToken(adminId), {
+export function getAdminCookieOptions(): {
+  httpOnly: boolean
+  sameSite: 'lax'
+  secure: boolean
+  maxAge: number
+  path: string
+} {
+  return {
     httpOnly: true,
     sameSite: 'lax',
     secure: isSecureRequest(),
     maxAge: 60 * 60 * 24 * SESSION_DAYS,
     path: '/',
-  })
+  }
+}
+
+export function setAdminSessionCookie(adminId: string): void {
+  cookies().set(ADMIN_COOKIE, createAdminToken(adminId), getAdminCookieOptions())
 }
 
 export function clearAdminSessionCookie(): void {
-  cookies().set(ADMIN_COOKIE, '', { httpOnly: true, sameSite: 'lax', secure: isSecureRequest(), maxAge: 0, path: '/' })
+  clearAdminSessionCache()
+  cookies().set(ADMIN_COOKIE, '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isSecureRequest(),
+    maxAge: 0,
+    path: '/',
+  })
 }
 
 function isSecureRequest(): boolean {
   try {
-    const proto = headers().get('x-forwarded-proto')
-    return proto === 'https'
+    const h = headers()
+    const proto = h.get('x-forwarded-proto')
+    if (proto === 'https') return true
+    if (h.get('x-forwarded-ssl') === 'on') return true
+    const referer = h.get('referer')
+    if (referer && referer.startsWith('https://')) return true
+    return false
   } catch {
     return false
   }

@@ -79,10 +79,12 @@ export default function TourFilters() {
               </p>
               <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-slate-400">{tour.description}</p>
               <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-400/25 bg-orange-500/10 px-3.5 py-1.5 text-xs font-semibold text-orange-300">
-                  <BadgeIndianRupee className="h-3.5 w-3.5" />
-                  {tour.priceLabel}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-white">₹{tour.price.toLocaleString('en-IN')}</span>
+                  {tour.originalPrice > tour.price && (
+                    <span className="text-xs text-slate-500 line-through">₹{tour.originalPrice.toLocaleString('en-IN')}</span>
+                  )}
+                </div>
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
                   <Users className="h-3.5 w-3.5" />
                   {tour.groupSize}

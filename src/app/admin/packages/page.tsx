@@ -83,10 +83,17 @@ export default function AdminPackages() {
             key: 'price',
             label: 'Price',
             render: (p) => (
-              <span className="font-semibold text-slate-200">
-                {p.currency || '₹'}
-                {p.pricePerPerson.toLocaleString('en-IN')}
-              </span>
+              <div>
+                <span className="font-semibold text-slate-200">
+                  {p.currency || '₹'}
+                  {p.pricePerPerson.toLocaleString('en-IN')}
+                </span>
+                {p.twoWayPrice ? (
+                  <span className="ml-2 text-xs text-orange-400">
+                    (2-way: ₹{p.twoWayPrice.toLocaleString('en-IN')})
+                  </span>
+                ) : null}
+              </div>
             ),
           },
           {

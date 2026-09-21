@@ -1,7 +1,15 @@
-import { NextRequest } from 'next/server'
-import { setAdminSessionCookie, audit, findAdminByEmail, ENV_ADMIN_ID } from '@/lib/auth'
+import { NextRequest, NextResponse } from 'next/server'
+import {
+  setAdminSessionCookie,
+  getAdminCookieOptions,
+  createAdminToken,
+  audit,
+  findAdminByEmail,
+  ENV_ADMIN_ID,
+  ADMIN_COOKIE,
+} from '@/lib/auth'
 
-const SUPER_ADMIN_EMAIL = 'maheshkumarsaini8769@gmail.com'
+const SUPER_ADMIN_EMAILS = ['maheshkumarsaini8769@gmail.com', 'rsnetwork98@gmail.com']
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -21,21 +29,33 @@ export async function GET(req: NextRequest) {
       }
       const { adminsCollection } = await import('@/lib/db')
       await adminsCollection()
-        .then((c) => c.updateOne({ _id: admin!._id }, { $set: { lastLoginAt: Date.now() } }))
+        .then((c) => c.updateOne({ _id: admin._id }, { $set: { lastLoginAt: Date.now() } }))
         .catch(() => {})
+
+      const token = createAdminToken(admin._id)
       setAdminSessionCookie(admin._id)
       void audit(email, 'oauth-login-redirect', 'auth')
-      return Response.redirect(new URL('/admin', req.url), 302)
+
+      const redirectUrl = new URL('/admin', req.nextUrl)
+      const res = NextResponse.redirect(redirectUrl, 302)
+      res.cookies.set(ADMIN_COOKIE, token, getAdminCookieOptions())
+      return res
     }
 
-    if (email === SUPER_ADMIN_EMAIL) {
+    if (SUPER_ADMIN_EMAILS.includes(email)) {
+      const token = createAdminToken(ENV_ADMIN_ID)
       setAdminSessionCookie(ENV_ADMIN_ID)
       void audit(email, 'oauth-login-redirect-env', 'auth')
-      return Response.redirect(new URL('/admin', req.url), 302)
+
+      const redirectUrl = new URL('/admin', req.nextUrl)
+      const res = NextResponse.redirect(redirectUrl, 302)
+      res.cookies.set(ADMIN_COOKIE, token, getAdminCookieOptions())
+      return res
     }
 
     return new Response('Email not authorized. Ask admin to add your email.', { status: 403 })
-  } catch {
+  } catch (err: any) {
+    console.error('complete-login error:', err)
     return new Response('Login failed', { status: 500 })
   }
 }
