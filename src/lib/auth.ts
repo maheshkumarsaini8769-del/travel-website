@@ -220,14 +220,16 @@ export function clearAdminSessionCookie(): void {
 function isSecureRequest(): boolean {
   try {
     const h = headers()
+    const host = h.get('host') || ''
+    if (host.includes('localhost') || host.includes('127.0.0.1')) return false
     const proto = h.get('x-forwarded-proto')
     if (proto === 'https') return true
     if (h.get('x-forwarded-ssl') === 'on') return true
     const referer = h.get('referer')
     if (referer && referer.startsWith('https://')) return true
-    return false
+    return process.env.NODE_ENV === 'production'
   } catch {
-    return false
+    return process.env.NODE_ENV === 'production'
   }
 }
 

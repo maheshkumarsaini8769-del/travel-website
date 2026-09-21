@@ -3,134 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 const SCRIPT_URL = 'https://unpkg.com/zenuxs-oauth@7.0.0/dist/zenux-oauth.min.js'
-const CLIENT_ID = '1fe396337ca4c424'
-
-function decodeJwt(token?: string | null): any {
-  if (!token || typeof token !== 'string') return null
-  try {
-    const parts = token.split('.')
-    if (parts.length < 2) return null
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const json = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    )
-    return JSON.parse(json)
-  } catch {
-    return null
-  }
-}
-
-function getTokensFromUrl(): { accessToken?: string; idToken?: string } | null {
-  if (typeof window === 'undefined') return null
-
-  // Check URL hash first
-  const hash = window.location.hash
-  if (hash && (hash.includes('access_token') || hash.includes('id_token'))) {
-    try {
-      const params = new URLSearchParams(hash.substring(1))
-      const accessToken = params.get('access_token') || undefined
-      const idToken = params.get('id_token') || undefined
-      if (accessToken || idToken) return { accessToken, idToken }
-    } catch {}
-  }
-
-  // Check search query params
-  const search = window.location.search
-  if (search && (search.includes('access_token') || search.includes('id_token'))) {
-    try {
-      const params = new URLSearchParams(search)
-      const accessToken = params.get('access_token') || undefined
-      const idToken = params.get('id_token') || undefined
-      if (accessToken || idToken) return { accessToken, idToken }
-    } catch {}
-  }
-
-  return null
-}
-
-async function extractUserInfo(detail: any): Promise<{ email: string; name: string } | null> {
-  if (!detail) return null
-
-  // 1. Direct user object
-  if (detail?.user?.email) {
-    return {
-      email: String(detail.user.email).trim().toLowerCase(),
-      name: String(detail.user.name || detail.user.email.split('@')[0]),
-    }
-  }
-  if (detail?.email) {
-    return {
-      email: String(detail.email).trim().toLowerCase(),
-      name: String(detail.name || detail.email.split('@')[0]),
-    }
-  }
-
-  // 2. Decode id_token JWT (instant, standard OpenID Connect payload)
-  const tokens = detail?.tokens || detail
-  const idToken = tokens?.id_token || tokens?.idToken || detail?.id_token || detail?.idToken
-  if (idToken) {
-    const payload = decodeJwt(idToken)
-    if (payload?.email) {
-      return {
-        email: String(payload.email).trim().toLowerCase(),
-        name: String(payload.name || payload.nickname || payload.email.split('@')[0]),
-      }
-    }
-  }
-
-  // 3. Use access token to fetch user profile
-  const accessToken =
-    tokens?.access_token ||
-    tokens?.accessToken ||
-    detail?.access_token ||
-    detail?.accessToken ||
-    (typeof detail === 'string' ? detail : null)
-  if (accessToken) {
-    // Attempt via ZenuxOAuth SDK instance
-    try {
-      const ZenuxClass = (window as any).ZenuxOAuth
-      if (ZenuxClass) {
-        const oauth = new ZenuxClass({ clientId: CLIENT_ID })
-        if (typeof oauth.setTokens === 'function') {
-          oauth.setTokens({ access_token: accessToken })
-        }
-        if (typeof oauth.getUserInfo === 'function') {
-          const info = await oauth.getUserInfo()
-          if (info?.email) {
-            return {
-              email: String(info.email).trim().toLowerCase(),
-              name: String(info.name || info.email.split('@')[0]),
-            }
-          }
-        }
-      }
-    } catch {}
-
-    // Direct fetch to userinfo endpoint
-    try {
-      const res = await fetch('https://api.auth.zenuxs.in/oauth/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: 'application/json',
-        },
-      })
-      if (res.ok) {
-        const info = await res.json()
-        if (info?.email) {
-          return {
-            email: String(info.email).trim().toLowerCase(),
-            name: String(info.name || info.email.split('@')[0]),
-          }
-        }
-      }
-    } catch {}
-  }
-
-  return null
-}
+const CLIENT_ID = process.env.NEXT_PUBLIC_ZENUX_CLIENT_ID || '1fe396337ca4c424'
 
 export default function AdminLogin() {
   const [error, setError] = useState('')
@@ -140,6 +13,7 @@ export default function AdminLogin() {
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const [redirectUri, setRedirectUri] = useState('')
   const authRef = useRef<HTMLElement | null>(null)
+  const oauthRef = useRef<any>(null)
   const processedRef = useRef(false)
 
   // Redirect to /admin if already logged in (silent check avoids 401 console error)
@@ -166,15 +40,27 @@ export default function AdminLogin() {
 
     if (typeof document === 'undefined') return
 
-    // If custom element already defined or script exists
-    if ((window as any).ZenuxOAuth || customElements.get('zenuxs-auth')) {
+    const initSDK = () => {
+      const ZenuxOAuthClass = (window as any).ZenuxOAuth
+      if (ZenuxOAuthClass && !oauthRef.current && redirectUri) {
+        oauthRef.current = new ZenuxOAuthClass({
+          clientId: CLIENT_ID,
+          redirectUri,
+          scopes: 'openid profile email',
+          theme: 'dark',
+        })
+      }
       setScriptLoaded(true)
+    }
+
+    if ((window as any).ZenuxOAuth || customElements.get('zenuxs-auth')) {
+      initSDK()
       return
     }
 
     const existing = document.querySelector(`script[src="${SCRIPT_URL}"]`)
     if (existing) {
-      setScriptLoaded(true)
+      existing.addEventListener('load', initSDK)
       return
     }
 
@@ -182,7 +68,7 @@ export default function AdminLogin() {
     script.src = SCRIPT_URL
     script.async = true
     script.onload = () => {
-      if (active) setScriptLoaded(true)
+      if (active) initSDK()
     }
     script.onerror = () => {
       if (active) {
@@ -195,81 +81,161 @@ export default function AdminLogin() {
     return () => {
       active = false
     }
-  }, [])
+  }, [redirectUri])
 
-  const executeLogin = useCallback(async (userInfo: { email: string; name: string }) => {
-    setBusy(true)
-    setBusyMessage(`Signing in as ${userInfo.email}...`)
-    setError('')
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: userInfo.email,
-          name: userInfo.name,
-          oauth: true,
-        }),
-      })
-
-      const data = await res.json().catch(() => ({}))
-
-      if (res.ok && data.ok) {
-        setBusyMessage('Opening Admin Panel...')
-        window.location.replace('/admin')
-        return
-      }
-
-      // If server returned an authorization or disabled error
-      if (data?.error) {
-        setBusy(false)
-        processedRef.current = false
-        setError(data.error)
-        return
-      }
-
-      // Fallback redirect if POST failed
-      window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name)}`
-    } catch {
-      // Fallback to server complete-login endpoint
-      window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(userInfo.email)}&name=${encodeURIComponent(userInfo.name)}`
-    }
-  }, [])
-
-  // Handle URL tokens from redirect
-  useEffect(() => {
-    if (!scriptLoaded || processedRef.current) return
-    const urlTokens = getTokensFromUrl()
-    if (urlTokens?.accessToken || urlTokens?.idToken) {
-      processedRef.current = true
+  const executeLogin = useCallback(
+    async (authData: { email: string; name?: string; accessToken?: string; idToken?: string }) => {
       setBusy(true)
-      setBusyMessage('Processing authentication...')
-      window.history.replaceState(null, '', window.location.pathname)
+      setBusyMessage(`Signing in as ${authData.email || 'Admin'}...`)
+      setError('')
 
-      extractUserInfo({
-        access_token: urlTokens.accessToken,
-        id_token: urlTokens.idToken,
-      })
-        .then((user) => {
-          if (!user?.email) {
-            setBusy(false)
-            processedRef.current = false
-            setError('Could not read email from login response.')
-            return
-          }
-          void executeLogin(user)
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authData.email,
+            name: authData.name,
+            accessToken: authData.accessToken,
+            idToken: authData.idToken,
+            oauth: true,
+          }),
         })
-        .catch((err: any) => {
+
+        const data = await res.json().catch(() => ({}))
+
+        if (res.ok && data.ok) {
+          setBusyMessage('Opening Admin Panel...')
+          window.location.replace('/admin')
+          return
+        }
+
+        if (data?.error) {
           setBusy(false)
           processedRef.current = false
-          setError(err?.message ?? 'Login failed.')
-        })
-    } else {
+          setError(data.error)
+          return
+        }
+
+        // Fallback redirect if POST failed
+        window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(authData.email)}&name=${encodeURIComponent(authData.name || '')}&accessToken=${encodeURIComponent(authData.accessToken || '')}`
+      } catch {
+        window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(authData.email)}&name=${encodeURIComponent(authData.name || '')}&accessToken=${encodeURIComponent(authData.accessToken || '')}`
+      }
+    },
+    []
+  )
+
+  // Extract user info strictly using ZenuxOAuth inbuilt functions
+  const processTokens = useCallback(
+    async (tokens: any) => {
+      const oauth = oauthRef.current || new ((window as any).ZenuxOAuth)({
+        clientId: CLIENT_ID,
+        redirectUri,
+      })
+      oauthRef.current = oauth
+
+      let email = ''
+      let name = ''
+      const accessToken = tokens?.access_token || tokens?.accessToken || (typeof tokens === 'string' ? tokens : '')
+      const idToken = tokens?.id_token || tokens?.idToken || ''
+
+      if (accessToken && typeof oauth.setTokens === 'function') {
+        oauth.setTokens({ access_token: accessToken, id_token: idToken })
+      }
+
+      // 1. Inbuilt getUserInfo()
+      if (accessToken && typeof oauth.getUserInfo === 'function') {
+        try {
+          const info = await oauth.getUserInfo()
+          if (info?.email) {
+            email = String(info.email).trim().toLowerCase()
+          }
+          if (info?.name || info?.nickname) {
+            name = String(info.name || info.nickname).trim()
+          }
+        } catch {}
+      }
+
+      // 2. Inbuilt decodeJWT() on id_token
+      if (!email && idToken && typeof oauth.decodeJWT === 'function') {
+        try {
+          const payload = oauth.decodeJWT(idToken)
+          if (payload?.email) {
+            email = String(payload.email).trim().toLowerCase()
+          }
+          if (payload?.name || payload?.nickname) {
+            name = String(payload.name || payload.nickname).trim()
+          }
+        } catch {}
+      }
+
+      // 3. Inbuilt decodeJWT() on access_token
+      if (!email && accessToken && typeof oauth.decodeJWT === 'function') {
+        try {
+          const payload = oauth.decodeJWT(accessToken)
+          if (payload?.email) {
+            email = String(payload.email).trim().toLowerCase()
+          }
+          if (payload?.name || payload?.nickname) {
+            name = String(payload.name || payload.nickname).trim()
+          }
+        } catch {}
+      }
+
+      // 4. Inbuilt user object fallback
+      if (!email && tokens?.user?.email) {
+        email = String(tokens.user.email).trim().toLowerCase()
+        name = String(tokens.user.name || name)
+      } else if (!email && tokens?.email) {
+        email = String(tokens.email).trim().toLowerCase()
+        name = String(tokens.name || name)
+      }
+
+      return {
+        email,
+        name: name || (email ? email.split('@')[0] : 'Admin'),
+        accessToken,
+        idToken,
+      }
+    },
+    [redirectUri]
+  )
+
+  // Handle URL parameters using inbuilt oauth.init()
+  useEffect(() => {
+    if (!scriptLoaded || !oauthRef.current || processedRef.current) return
+
+    const oauth = oauthRef.current
+    if (typeof oauth.init !== 'function') {
       setReady(true)
+      return
     }
-  }, [scriptLoaded, executeLogin])
+
+    oauth
+      .init()
+      .then(async (tokens: any) => {
+        if (tokens?.access_token || tokens?.id_token) {
+          processedRef.current = true
+          setBusy(true)
+          setBusyMessage('Processing authentication...')
+          const authData = await processTokens(tokens)
+          if (authData.email) {
+            await executeLogin(authData)
+          } else {
+            setBusy(false)
+            processedRef.current = false
+            setError('Could not verify email from authentication.')
+          }
+        } else {
+          setReady(true)
+        }
+      })
+      .catch(() => {
+        setReady(true)
+      })
+  }, [scriptLoaded, processTokens, executeLogin])
 
   // Handle <zenuxs-auth> success event
   const handleSuccess = useCallback(
@@ -283,21 +249,21 @@ export default function AdminLogin() {
       setBusyMessage('Completing login...')
 
       try {
-        const user = await extractUserInfo(detail)
-        if (!user?.email) {
+        const authData = await processTokens(detail)
+        if (!authData.email) {
           setBusy(false)
           processedRef.current = false
           setError('Could not verify email. Please try again.')
           return
         }
-        await executeLogin(user)
+        await executeLogin(authData)
       } catch (err: any) {
         setBusy(false)
         processedRef.current = false
         setError(err?.message ?? 'Login failed.')
       }
     },
-    [executeLogin]
+    [processTokens, executeLogin]
   )
 
   const handleError = useCallback((e: Event) => {
@@ -306,6 +272,36 @@ export default function AdminLogin() {
     setBusy(false)
     setError(detail?.message ?? 'Authentication error occurred.')
   }, [])
+
+  // Inbuilt popup login button handler
+  const handlePopupLogin = async () => {
+    const oauth = oauthRef.current || new ((window as any).ZenuxOAuth)({
+      clientId: CLIENT_ID,
+      redirectUri,
+    })
+    oauthRef.current = oauth
+
+    setBusy(true)
+    setBusyMessage('Opening login popup...')
+    setError('')
+
+    try {
+      const tokens = await oauth.login({ mode: 'popup' })
+      if (tokens) {
+        const authData = await processTokens(tokens)
+        if (authData.email) {
+          await executeLogin(authData)
+          return
+        }
+      }
+      setBusy(false)
+    } catch (err: any) {
+      setBusy(false)
+      if (err?.code !== 'AUTH_CANCELLED') {
+        setError(err?.message ?? 'Popup authentication failed.')
+      }
+    }
+  }
 
   useEffect(() => {
     const el = authRef.current
@@ -325,9 +321,9 @@ export default function AdminLogin() {
         setBusy(true)
         setBusyMessage('Completing login...')
         try {
-          const user = await extractUserInfo(data)
-          if (user?.email) {
-            await executeLogin(user)
+          const authData = await processTokens(data.tokens || data)
+          if (authData.email) {
+            await executeLogin(authData)
           } else {
             setBusy(false)
             processedRef.current = false
@@ -349,7 +345,7 @@ export default function AdminLogin() {
       el.removeEventListener('error', handleError, { capture: true })
       window.removeEventListener('message', handleWindowMessage)
     }
-  }, [scriptLoaded, handleSuccess, handleError, executeLogin])
+  }, [scriptLoaded, handleSuccess, handleError, processTokens, executeLogin])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#070707] px-4 py-8">
@@ -386,19 +382,32 @@ export default function AdminLogin() {
         )}
 
         {ready && !busy && scriptLoaded && redirectUri ? (
-          <div className="flex justify-center min-h-[500px]">
-            <zenuxs-auth
-              ref={authRef}
-              client-id={CLIENT_ID}
-              redirect-uri={redirectUri}
-              scope="openid profile email"
-              theme="dark"
-              height="500px"
-              width="100%"
-              auto-redirect="true"
-              redirect-url="/admin"
-              redirect-delay="1"
-            />
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-full flex justify-center min-h-[500px]">
+              <zenuxs-auth
+                ref={authRef}
+                client-id={CLIENT_ID}
+                redirect-uri={redirectUri}
+                scope="openid profile email"
+                theme="dark"
+                height="500px"
+                width="100%"
+                auto-redirect="false"
+              />
+            </div>
+
+            <div className="w-full flex items-center gap-3 pt-2">
+              <div className="h-px flex-1 bg-white/10" />
+              <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">Or</span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+
+            <button
+              onClick={handlePopupLogin}
+              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 px-4 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              Continue in Popup Window
+            </button>
           </div>
         ) : (
           !busy &&
