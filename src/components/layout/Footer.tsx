@@ -144,16 +144,23 @@ export default function Footer() {
 
           <nav aria-label="Services">
             <h3 className="text-sm font-semibold uppercase tracking-[0.25em] text-white">Services</h3>
-            <ul className="mt-5 space-y-3 text-sm">
-              {['Flights', 'Hotels', 'Tour Packages', 'Holiday Plans', 'Visa Assistance', 'Transportation'].map(
-                (s) => (
-                  <li key={s}>
-                    <Link href="/services" className="transition-colors hover:text-orange-400">
-                      {s}
-                    </Link>
-                  </li>
-                )
-              )}
+            <ul className="mt-5 space-y-2.5 text-sm">
+              {[
+                { name: 'Tour Packages from Sikar', href: '/tour-packages' },
+                { name: 'Rajasthan Tour Packages', href: '/rajasthan-tour-packages' },
+                { name: 'India Tour Packages', href: '/india-tour-packages' },
+                { name: 'International Packages', href: '/international-tour-packages' },
+                { name: 'Flight Booking Sikar', href: '/flight-booking' },
+                { name: 'Hotel Booking', href: '/hotel-booking' },
+                { name: 'Visa Assistance', href: '/visa-assistance' },
+                { name: 'Taxi Service in Sikar', href: '/transportation' },
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="transition-colors hover:text-orange-400">
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </nav>
 

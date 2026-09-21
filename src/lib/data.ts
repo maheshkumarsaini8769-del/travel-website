@@ -1,4 +1,4 @@
-﻿import { packages as staticPackages, type TravelPackage } from '@/data/packages'
+import { packages as staticPackages, type TravelPackage } from '@/data/packages'
 import { destinations as staticDestinations, type Destination } from '@/data/destinations'
 import {
   packagesCollection,
@@ -113,14 +113,24 @@ export async function getDestinations(): Promise<Destination[]> {
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
+  const stat = staticDestinations.find((d) => d.id === slug) ?? null
   try {
     const col = await withTimeout(destinationsCollection(), 3000)
     const doc = await withTimeout(col.findOne({ _id: slug, status: { $nin: ['draft'] } }), 3000)
-    if (doc) return destToPublic(doc)
+    if (doc) {
+      const pub = destToPublic(doc)
+      return {
+        ...stat,
+        ...pub,
+        approximateItinerary: stat?.approximateItinerary,
+        travelPlanningInfo: stat?.travelPlanningInfo,
+        faqs: stat?.faqs,
+      }
+    }
   } catch {
     // fall through to static
   }
-  return staticDestinations.find((d) => d.id === slug) ?? null
+  return stat
 }
 
 export async function listDatabaseDestinations(): Promise<DestinationDoc[]> {

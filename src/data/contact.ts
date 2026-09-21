@@ -10,8 +10,9 @@ export const contact = {
   whatsappSecondary: '919462465726',
   email: 'sunskytourism.in@gmail.com',
   website: 'www.sunskytourism.in',
-  address: 'W.No. 45, Industrial Area, Sikar',
-  addressFull: 'W.No. 45, Industrial Area, Sikar, Rajasthan, India',
+  address: 'W.No. 45, Industrial Area, Sikar, Rajasthan 332001',
+  addressFull: 'W.No. 45, Industrial Area, Sikar, Rajasthan 332001, India',
+  postalCode: '332001',
   latitude: '27.6094',
   longitude: '75.1399',
 }
@@ -23,6 +24,9 @@ export const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encode
 )}`
 
 export const waLink = (message: string, phone: string = contact.whatsappPrimary) =>
+  `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+
+export const waUrl = (phone: string, message: string) =>
   `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
 
 export const waLinkBase = `https://wa.me/${contact.whatsappPrimary}?text=`

@@ -81,6 +81,15 @@ export default async function ServicesPage() {
                             </li>
                           ))}
                         </ul>
+                        <div className="mt-5 border-t border-white/10 pt-4">
+                          <Link
+                            href={s.href}
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-orange-400 transition-colors hover:text-orange-300"
+                          >
+                            Explore Service Details
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Link>
+                        </div>
                       </div>
                     </article>
                   </TiltCard>

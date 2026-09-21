@@ -10,7 +10,22 @@ import { StaggerGroup, StaggerItem } from '@/components/ui/TextReveal'
 import { getSettings, waUrl } from '@/lib/settings'
 import BreadcrumbJsonLd from '@/components/seo/BreadcrumbJsonLd'
 import JsonLd from '@/components/seo/JsonLd'
-import { ArrowLeft, CalendarDays, MapPin, Sparkles, MessageCircle, Navigation, Clock, ArrowRight } from 'lucide-react'
+import {
+  ArrowLeft,
+  CalendarDays,
+  MapPin,
+  Sparkles,
+  MessageCircle,
+  Navigation,
+  Clock,
+  ArrowRight,
+  HelpCircle,
+  Compass,
+  CheckCircle2,
+  ChevronDown,
+  Car,
+  Wallet,
+} from 'lucide-react'
 import { contact, mapsUrl } from '@/data/contact'
 
 interface Props {
@@ -25,15 +40,25 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const dest = await getDestinationBySlug(params.id)
   if (!dest) return { title: 'Destination Not Found | Sunsky Tourism' }
+
+  const title = `${dest.name} Tour Packages from Sikar | Trip Itinerary & Guide — Sunsky Tourism`
+  const description = `Plan your trip to ${dest.name} from Sikar with Sunsky Tourism. ${dest.tagline} — Itineraries, best time to visit, hotel bookings, and private cab rentals.`
+
   return {
-    title: `${dest.name} | Sunsky Tourism`,
-    description: `${dest.tagline} — ${dest.description} Plan your trip to ${dest.name} with Sunsky Tourism.`,
+    title,
+    description,
     alternates: { canonical: `/destinations/${dest.id}` },
     openGraph: {
-      title: `${dest.name} | Sunsky Tourism`,
-      description: `${dest.tagline} — ${dest.description} Plan your trip to ${dest.name} with Sunsky Tourism.`,
+      title,
+      description,
       url: `https://www.sunskytourism.in/destinations/${dest.id}`,
-      images: [{ url: dest.image, width: 1200, height: 630, alt: dest.name }],
+      images: [{ url: dest.image, width: 1200, height: 630, alt: `${dest.name} — Sunsky Tourism` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [dest.image],
     },
   }
 }
@@ -46,46 +71,63 @@ export default async function DestinationDetailPage({ params }: Props) {
   ])
   if (!dest) notFound()
 
-  const destTours = tours.filter((t) =>
-    t.destinationId === dest.id || t.destination.toLowerCase() === dest.name.toLowerCase()
+  const destTours = tours.filter(
+    (t) => t.destinationId === dest.id || t.destination.toLowerCase() === dest.name.toLowerCase()
   )
 
   const b = settings.business
 
-return (
+  const schemas: any[] = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'TouristDestination',
+      name: dest.name,
+      description: `${dest.tagline} — ${dest.description} Best time to visit: ${dest.bestTime}.`,
+      image: [`https://www.sunskytourism.in${dest.image}`],
+      url: `https://www.sunskytourism.in/destinations/${dest.id}`,
+      touristType: [...dest.highlights],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://www.sunskytourism.in',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Destinations',
+          item: 'https://www.sunskytourism.in/destinations',
+        },
+        { '@type': 'ListItem', position: 3, name: dest.name },
+      ],
+    },
+  ]
+
+  if (dest.faqs && dest.faqs.length > 0) {
+    schemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: dest.faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: f.answer,
+        },
+      })),
+    })
+  }
+
+  return (
     <>
-      <JsonLd
-        data={[
-          {
-            '@context': 'https://schema.org',
-            '@type': 'TouristDestination',
-            name: dest.name,
-            description: `${dest.tagline} — ${dest.description} Best time to visit: ${dest.bestTime}.`,
-            image: [`https://www.sunskytourism.in${dest.image}`],
-            url: `https://www.sunskytourism.in/destinations/${dest.id}`,
-            touristType: [...dest.highlights],
-          },
-          {
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              {
-                '@type': 'ListItem',
-                position: 1,
-                name: 'Home',
-                item: 'https://www.sunskytourism.in',
-              },
-              {
-                '@type': 'ListItem',
-                position: 2,
-                name: 'Destinations',
-                item: 'https://www.sunskytourism.in/destinations',
-              },
-              { '@type': 'ListItem', position: 3, name: dest.name },
-            ],
-          },
-        ]}
-      />
+      <JsonLd data={schemas} />
+
+      {/* Hero Header */}
       <section className="relative flex min-h-[60vh] flex-col justify-between overflow-hidden pt-20 pb-12 sm:pb-16">
         <div className="absolute inset-0">
           <Image src={dest.image} alt={dest.name} fill sizes="100vw" priority className="object-cover" />
@@ -121,6 +163,7 @@ return (
         ]}
       />
 
+      {/* Overview & Sidebar */}
       <section className="relative py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-[1.5fr_1fr]">
@@ -201,7 +244,10 @@ return (
 
               <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-7">
                 <a
-                  href={waUrl(b.whatsappPrimary, `Hi Sunsky Tourism, I'm interested in visiting ${dest.name}. Please share itinerary and pricing details.`)}
+                  href={waUrl(
+                    b.whatsappPrimary,
+                    `Hi Sunsky Tourism, I'm interested in visiting ${dest.name}. Please share itinerary and pricing details.`
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 font-semibold text-white shadow-[0_10px_30px_rgba(37,211,102,0.3)] transition-all duration-300 hover:-translate-y-0.5"
@@ -213,6 +259,117 @@ return (
             </aside>
           </div>
 
+          {/* Suggested Itinerary Section */}
+          {dest.approximateItinerary && dest.approximateItinerary.length > 0 && (
+            <div className="mt-20 border-t border-white/10 pt-16">
+              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-orange-400">
+                Suggested Itinerary
+              </span>
+              <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+                How to spend your time in {dest.name}
+              </h2>
+              <div className="mt-8 space-y-6">
+                {dest.approximateItinerary.map((item, index) => (
+                  <div
+                    key={item.day}
+                    className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition-colors hover:border-orange-500/30 sm:flex-row sm:items-start sm:gap-6 sm:p-7"
+                  >
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-400 font-bold text-sm">
+                      {item.day}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">{item.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-400">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Travel Planning & Route from Sikar */}
+          {dest.travelPlanningInfo && (
+            <div className="mt-16 rounded-[32px] border border-white/10 bg-gradient-to-br from-white/[0.04] to-white/[0.01] p-8 sm:p-12">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-orange-400">
+                <Compass className="h-4 w-4" /> Travel Planning Guide
+              </span>
+              <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+                Planning Your {dest.name} Trip from Sikar
+              </h2>
+
+              <div className="mt-8 grid gap-6 md:grid-cols-3">
+                <div className="rounded-2xl border border-white/5 bg-black/20 p-6">
+                  <div className="flex items-center gap-2.5 text-orange-400">
+                    <Car className="h-5 w-5" />
+                    <h3 className="font-semibold text-white">How to Reach from Sikar</h3>
+                  </div>
+                  <p className="mt-3 text-xs leading-relaxed text-slate-300">
+                    {dest.travelPlanningInfo.howToReach}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/5 bg-black/20 p-6">
+                  <div className="flex items-center gap-2.5 text-orange-400">
+                    <Clock className="h-5 w-5" />
+                    <h3 className="font-semibold text-white">Ideal Duration</h3>
+                  </div>
+                  <p className="mt-3 text-xs leading-relaxed text-slate-300">
+                    {dest.travelPlanningInfo.idealDuration}
+                  </p>
+                  <div className="mt-4 pt-3 border-t border-white/5">
+                    <div className="flex items-center gap-2 text-orange-400">
+                      <Wallet className="h-4 w-4" />
+                      <span className="text-xs font-semibold text-white">Estimated Budget</span>
+                    </div>
+                    <p className="mt-1 text-xs text-slate-400">{dest.travelPlanningInfo.estimatedBudget}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/5 bg-black/20 p-6">
+                  <div className="flex items-center gap-2.5 text-orange-400">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <h3 className="font-semibold text-white">Local Insider Tips</h3>
+                  </div>
+                  <ul className="mt-3 space-y-2">
+                    {dest.travelPlanningInfo.localTips.map((tip, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-400" />
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Visible FAQs */}
+          {dest.faqs && dest.faqs.length > 0 && (
+            <div className="mt-16 border-t border-white/10 pt-16">
+              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-orange-400">
+                <HelpCircle className="h-4 w-4" /> FAQs
+              </span>
+              <h2 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+                Frequently Asked Questions about {dest.name}
+              </h2>
+              <div className="mt-8 space-y-3.5">
+                {dest.faqs.map((f) => (
+                  <details
+                    key={f.question}
+                    className="group rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-colors hover:border-white/20"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between text-base font-semibold text-white">
+                      <span>{f.question}</span>
+                      <ChevronDown className="h-4 w-4 text-orange-400 transition-transform duration-200 group-open:rotate-180" />
+                    </summary>
+                    <p className="mt-3 text-sm leading-relaxed text-slate-300">{f.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* The Experience & Visit Sikar */}
           <div className="mt-16 grid gap-6 lg:grid-cols-2">
             <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-8 sm:p-10">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-orange-400">
@@ -248,10 +405,7 @@ return (
       {destTours.length > 0 && (
         <section id="tours" className="relative py-20 sm:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionHeading
-              eyebrow="Tours & Activities"
-              title={`Things to do in ${dest.name}.`}
-            />
+            <SectionHeading eyebrow="Tours & Activities" title={`Things to do in ${dest.name}.`} />
             <StaggerGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {destTours.map((tour) => (
                 <StaggerItem key={tour.id}>
@@ -261,7 +415,8 @@ return (
                   >
                     <div className="relative h-48 overflow-hidden">
                       <Image
-                        loading="lazy" decoding="async"
+                        loading="lazy"
+                        decoding="async"
                         src={tour.images[0]}
                         alt={tour.title}
                         fill
@@ -284,7 +439,9 @@ return (
                         <div className="flex items-center gap-2">
                           <span className="text-2xl font-bold text-white">₹{tour.price.toLocaleString('en-IN')}</span>
                           {tour.originalPrice > tour.price && (
-                            <span className="text-xs text-slate-500 line-through">₹{tour.originalPrice.toLocaleString('en-IN')}</span>
+                            <span className="text-xs text-slate-500 line-through">
+                              ₹{tour.originalPrice.toLocaleString('en-IN')}
+                            </span>
                           )}
                         </div>
                         <span className="flex items-center gap-1.5 text-sm font-semibold text-orange-400 transition-colors group-hover:text-orange-300">
@@ -303,10 +460,7 @@ return (
 
       <section className="relative pb-24 sm:pb-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <SectionHeading
-            eyebrow="Explore More"
-            title="Other destinations you might love."
-          />
+          <SectionHeading eyebrow="Explore More" title="Other destinations you might love." />
           <StaggerGroup className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {allDests
               .filter((d) => d.id !== dest.id)
@@ -318,8 +472,9 @@ return (
                     className="group block overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] transition-colors duration-500 hover:border-orange-400/30"
                   >
                     <div className="relative h-48 overflow-hidden">
-<Image
-                        loading="lazy" decoding="async"
+                      <Image
+                        loading="lazy"
+                        decoding="async"
                         src={d.image}
                         alt={d.name}
                         fill

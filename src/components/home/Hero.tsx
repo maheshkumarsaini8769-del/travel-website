@@ -90,12 +90,12 @@ export default function Hero() {
             />
           </motion.p>
 
-          <TextReveal
-            as="h1"
-            text={`${h.title1} ${h.title2}`}
-            delay={0.4}
-            className="mt-4 text-[clamp(2.8rem,8vw,6.5rem)] font-bold leading-[0.98] tracking-tight text-white"
-          />
+          <h1 className="mt-4 text-[clamp(2.8rem,8vw,6.5rem)] font-bold leading-[0.98] tracking-tight text-white">
+            <span className="block">{h.title1} {h.title2}</span>
+            <span className="mt-3 block text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] text-orange-400">
+              Travel Agency &amp; Tour Packages in Sikar
+            </span>
+          </h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}

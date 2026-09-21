@@ -17,6 +17,7 @@ export interface Service {
   description: string
   benefits: string[]
   image: string
+  href: string
 }
 
 export const services: Service[] = [
@@ -29,6 +30,7 @@ export const services: Service[] = [
       'Domestic and international flight bookings at the best available fares, with support for date changes, cancellations and group bookings.',
     benefits: ['Domestic & international', 'Best fare comparison', 'Group bookings', 'Reschedule assistance'],
     image: serviceImages.flights,
+    href: '/flight-booking',
   },
   {
     id: 'hotels',
@@ -39,6 +41,7 @@ export const services: Service[] = [
       'Handpicked hotels, resorts, houseboats and camps matched to your budget and taste — from heritage stays to beachfront luxury.',
     benefits: ['Curated properties', 'Verified reviews', 'Best rates', 'Family-friendly options'],
     image: serviceImages.hotels,
+    href: '/hotel-booking',
   },
   {
     id: 'tours',
@@ -49,6 +52,7 @@ export const services: Service[] = [
       'Complete travel packages built around how you want to travel — culture, adventure, beaches or mountains, planned down to the last detail.',
     benefits: ['Fully customized', 'Local guides', 'Sightseeing planned', 'No hidden costs'],
     image: serviceImages.tours,
+    href: '/tour-packages',
   },
   {
     id: 'holidays',
@@ -59,6 +63,7 @@ export const services: Service[] = [
       'Honeymoons, family vacations and group holidays with flights, stays, meals and experiences arranged so you simply arrive and enjoy.',
     benefits: ['Honeymoon planning', 'Family packages', 'Group holidays', 'All-inclusive options'],
     image: serviceImages.holidays,
+    href: '/rajasthan-tour-packages',
   },
   {
     id: 'visa',
@@ -69,6 +74,7 @@ export const services: Service[] = [
       'Documentation guidance and application support for international travel, so your visa process is smooth, accurate and on time.',
     benefits: ['Document checklist', 'Application guidance', 'Appointment support', 'Update tracking'],
     image: serviceImages.visa,
+    href: '/visa-assistance',
   },
   {
     id: 'transport',
@@ -79,5 +85,6 @@ export const services: Service[] = [
       'Airport transfers, sightseeing cabs and long-distance travel arranged with professional drivers and well-maintained vehicles.',
     benefits: ['Airport transfers', 'Sightseeing cabs', 'Long-distance travel', 'Experienced drivers'],
     image: serviceImages.transport,
+    href: '/transportation',
   },
 ]
