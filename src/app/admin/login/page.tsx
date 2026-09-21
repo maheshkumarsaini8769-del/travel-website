@@ -397,7 +397,7 @@ export default function AdminLogin() {
               width="100%"
               auto-redirect="true"
               redirect-url="/admin/dashboard"
-              redirect-delay="0"
+              redirect-delay="1"
             />
           </div>
         ) : (
