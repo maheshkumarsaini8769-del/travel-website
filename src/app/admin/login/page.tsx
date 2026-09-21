@@ -395,7 +395,9 @@ export default function AdminLogin() {
               theme="dark"
               height="500px"
               width="100%"
-              auto-redirect="false"
+              auto-redirect="true"
+              redirect-url="/admin/dashboard"
+              redirect-delay="0"
             />
           </div>
         ) : (
