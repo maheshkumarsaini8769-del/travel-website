@@ -1,18 +1,22 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import ZenuxOAuth from 'zenuxs-oauth'
 
-const SCRIPT_URL = 'https://unpkg.com/zenuxs-oauth@7.0.0/dist/zenux-oauth.min.js'
 const CLIENT_ID = process.env.NEXT_PUBLIC_ZENUX_CLIENT_ID || '1fe396337ca4c424'
+
+// Ensure ZenuxOAuth is globally available on window if needed by custom elements
+if (typeof window !== 'undefined') {
+  ;(window as any).ZenuxOAuth = ZenuxOAuth
+}
 
 export default function AdminLogin() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [busyMessage, setBusyMessage] = useState('Signing you in...')
   const [ready, setReady] = useState(false)
-  const [scriptLoaded, setScriptLoaded] = useState(false)
   const [redirectUri, setRedirectUri] = useState('')
-  const oauthRef = useRef<any>(null)
+  const oauthRef = useRef<ZenuxOAuth | null>(null)
   const processedRef = useRef(false)
 
   // Redirect to /admin if already logged in via server session
@@ -29,58 +33,19 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setRedirectUri(`${window.location.origin}/admin/login`)
-    }
-  }, [])
-
-  // Load Zenuxs OAuth browser SDK via script tag
-  useEffect(() => {
-    let active = true
-    if (typeof document === 'undefined') return
-
-    const initSDK = () => {
-      const ZenuxOAuthClass = (window as any).ZenuxOAuth
-      if (ZenuxOAuthClass && !oauthRef.current && redirectUri) {
-        oauthRef.current = new ZenuxOAuthClass({
+      const uri = `${window.location.origin}/admin/login`
+      setRedirectUri(uri)
+      if (!oauthRef.current) {
+        oauthRef.current = new ZenuxOAuth({
           clientId: CLIENT_ID,
-          redirectUri,
+          redirectUri: uri,
           scopes: 'openid profile email',
           theme: 'dark',
         })
       }
-      setScriptLoaded(true)
       setReady(true)
     }
-
-    if ((window as any).ZenuxOAuth || customElements.get('zenuxs-auth')) {
-      initSDK()
-      return
-    }
-
-    const existing = document.querySelector(`script[src="${SCRIPT_URL}"]`)
-    if (existing) {
-      existing.addEventListener('load', initSDK)
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = SCRIPT_URL
-    script.async = true
-    script.onload = () => {
-      if (active) initSDK()
-    }
-    script.onerror = () => {
-      if (active) {
-        setError('Failed to load login SDK. Please refresh the page.')
-        setReady(true)
-      }
-    }
-    document.body.appendChild(script)
-
-    return () => {
-      active = false
-    }
-  }, [redirectUri])
+  }, [])
 
   const executeLogin = useCallback(
     async (authData: { email: string; name?: string; accessToken?: string; idToken?: string }) => {
@@ -132,9 +97,9 @@ export default function AdminLogin() {
         }
 
         // Fallback redirect if POST returned unexpected response
-        window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(authData.email)}&name=${encodeURIComponent(authData.name || '')}&accessToken=${encodeURIComponent(authData.accessToken || '')}`
+        window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(authData.email || '')}&name=${encodeURIComponent(authData.name || '')}&accessToken=${encodeURIComponent(authData.accessToken || '')}`
       } catch {
-        window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(authData.email)}&name=${encodeURIComponent(authData.name || '')}&accessToken=${encodeURIComponent(authData.accessToken || '')}`
+        window.location.href = `/api/auth/complete-login?email=${encodeURIComponent(authData.email || '')}&name=${encodeURIComponent(authData.name || '')}&accessToken=${encodeURIComponent(authData.accessToken || '')}`
       }
     },
     []
@@ -143,10 +108,14 @@ export default function AdminLogin() {
   // Extract user info strictly using ZenuxOAuth inbuilt functions
   const processTokens = useCallback(
     async (tokens: any) => {
-      const oauth = oauthRef.current || new ((window as any).ZenuxOAuth)({
-        clientId: CLIENT_ID,
-        redirectUri,
-      })
+      const oauth =
+        oauthRef.current ||
+        new ZenuxOAuth({
+          clientId: CLIENT_ID,
+          redirectUri: redirectUri || (typeof window !== 'undefined' ? `${window.location.origin}/admin/login` : ''),
+          scopes: 'openid profile email',
+          theme: 'dark',
+        })
       oauthRef.current = oauth
 
       let email = ''
@@ -162,8 +131,8 @@ export default function AdminLogin() {
         tokens?.tokens?.id_token ||
         ''
 
-      if (accessToken && typeof oauth.setTokens === 'function') {
-        oauth.setTokens({
+      if (accessToken && typeof (oauth as any).setTokens === 'function') {
+        ;(oauth as any).setTokens({
           access_token: accessToken,
           id_token: idToken,
           ...(typeof tokens === 'object' && tokens ? tokens : {}),
@@ -241,14 +210,19 @@ export default function AdminLogin() {
             processedRef.current = true
             setBusy(true)
             setBusyMessage('Opening Admin Panel...')
-            processTokens(parsed).then((authData) => {
-              if (authData.email) {
-                executeLogin(authData)
-              } else {
+            processTokens(parsed)
+              .then((authData) => {
+                if (authData.email || authData.accessToken) {
+                  executeLogin(authData)
+                } else {
+                  setBusy(false)
+                  processedRef.current = false
+                }
+              })
+              .catch(() => {
                 setBusy(false)
                 processedRef.current = false
-              }
-            })
+              })
           }
         }
       } catch {}
@@ -268,14 +242,18 @@ export default function AdminLogin() {
       processedRef.current = true
       setBusy(true)
       setBusyMessage('Completing authentication...')
-      const ZenuxOAuthClass = (window as any).ZenuxOAuth
-      const oauth = oauthRef.current || (ZenuxOAuthClass ? new ZenuxOAuthClass({ clientId: CLIENT_ID, redirectUri }) : null)
+      const oauth =
+        oauthRef.current ||
+        new ZenuxOAuth({
+          clientId: CLIENT_ID,
+          redirectUri,
+        })
       if (oauth && typeof oauth.handleCallback === 'function') {
         oauth
           .handleCallback(href, { notifyParent: false })
           .then(async (tokens: any) => {
             const authData = await processTokens(tokens)
-            if (authData.email) {
+            if (authData.email || authData.accessToken) {
               await executeLogin(authData)
             } else {
               setBusy(false)
@@ -305,7 +283,7 @@ export default function AdminLogin() {
 
       try {
         const authData = await processTokens(detail?.tokens || detail?.result || detail)
-        if (authData.email) {
+        if (authData.email || authData.accessToken) {
           await executeLogin(authData)
         } else {
           setBusy(false)
@@ -335,12 +313,16 @@ export default function AdminLogin() {
           setBusy(true)
           setBusyMessage('Completing login...')
           try {
-            const ZenuxOAuthClass = (window as any).ZenuxOAuth
-            const oauth = oauthRef.current || (ZenuxOAuthClass ? new ZenuxOAuthClass({ clientId: CLIENT_ID, redirectUri }) : null)
+            const oauth =
+              oauthRef.current ||
+              new ZenuxOAuth({
+                clientId: CLIENT_ID,
+                redirectUri,
+              })
             if (oauth) {
               const tokens = await oauth.handleCallback(data.url, { notifyParent: false })
               const authData = await processTokens(tokens)
-              if (authData.email) {
+              if (authData.email || authData.accessToken) {
                 await executeLogin(authData)
                 return
               }
@@ -361,7 +343,7 @@ export default function AdminLogin() {
         setBusyMessage('Completing login...')
         try {
           const authData = await processTokens(data.tokens || data)
-          if (authData.email) {
+          if (authData.email || authData.accessToken) {
             await executeLogin(authData)
           } else {
             setBusy(false)
@@ -393,13 +375,12 @@ export default function AdminLogin() {
 
   // Inbuilt popup login button handler
   const handlePopupLogin = async () => {
-    const ZenuxOAuthClass = (window as any).ZenuxOAuth
-    const oauth = oauthRef.current || (ZenuxOAuthClass ? new ZenuxOAuthClass({
-      clientId: CLIENT_ID,
-      redirectUri,
-    }) : null)
-    if (!oauth) return
-
+    const oauth =
+      oauthRef.current ||
+      new ZenuxOAuth({
+        clientId: CLIENT_ID,
+        redirectUri,
+      })
     oauthRef.current = oauth
     setBusy(true)
     setBusyMessage('Opening login popup...')
@@ -409,7 +390,7 @@ export default function AdminLogin() {
       const tokens = await oauth.login({ mode: 'popup' })
       if (tokens) {
         const authData = await processTokens(tokens)
-        if (authData.email) {
+        if (authData.email || authData.accessToken) {
           await executeLogin(authData)
           return
         }
@@ -457,7 +438,7 @@ export default function AdminLogin() {
           </div>
         )}
 
-        {ready && !busy && scriptLoaded && redirectUri ? (
+        {ready && !busy && redirectUri ? (
           <div className="flex flex-col items-center gap-4">
             <div className="w-full flex justify-center min-h-[500px]">
               <zenuxs-auth
