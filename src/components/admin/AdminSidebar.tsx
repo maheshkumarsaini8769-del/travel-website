@@ -50,7 +50,23 @@ export default function AdminSidebar() {
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
     } catch {}
-    router.replace('/admin/login')
+    try {
+      localStorage.removeItem('zenux_oauth_tokens')
+      sessionStorage.removeItem('zenux_oauth_tokens')
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && (key.startsWith('zenux_') || key.startsWith('admin_'))) {
+          localStorage.removeItem(key)
+        }
+      }
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i)
+        if (key && (key.startsWith('zenux_') || key.startsWith('admin_'))) {
+          sessionStorage.removeItem(key)
+        }
+      }
+    } catch {}
+    window.location.replace('/admin/login')
   }
 
   return (
