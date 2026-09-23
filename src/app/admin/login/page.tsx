@@ -90,10 +90,24 @@ export default function AdminLogin() {
       setError('')
 
       try {
+        if (typeof document !== 'undefined') {
+          if (authData.accessToken) {
+            document.cookie = `zenux_access_token=${encodeURIComponent(authData.accessToken)}; Path=/; Max-Age=604800; SameSite=Lax`
+          }
+          if (authData.idToken) {
+            document.cookie = `zenux_id_token=${encodeURIComponent(authData.idToken)}; Path=/; Max-Age=604800; SameSite=Lax`
+          }
+        }
+
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+        if (authData.accessToken) {
+          headers['Authorization'] = `Bearer ${authData.accessToken}`
+        }
+
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             email: authData.email,
             name: authData.name,
@@ -138,11 +152,23 @@ export default function AdminLogin() {
 
       let email = ''
       let name = ''
-      const accessToken = tokens?.access_token || tokens?.accessToken || (typeof tokens === 'string' ? tokens : '')
-      const idToken = tokens?.id_token || tokens?.idToken || ''
+      const accessToken =
+        tokens?.access_token ||
+        tokens?.accessToken ||
+        tokens?.tokens?.access_token ||
+        (typeof tokens === 'string' ? tokens : '')
+      const idToken =
+        tokens?.id_token ||
+        tokens?.idToken ||
+        tokens?.tokens?.id_token ||
+        ''
 
       if (accessToken && typeof oauth.setTokens === 'function') {
-        oauth.setTokens({ access_token: accessToken, id_token: idToken })
+        oauth.setTokens({
+          access_token: accessToken,
+          id_token: idToken,
+          ...(typeof tokens === 'object' && tokens ? tokens : {}),
+        })
       }
 
       // 1. Inbuilt getUserInfo()
@@ -216,7 +242,12 @@ export default function AdminLogin() {
     oauth
       .init()
       .then(async (tokens: any) => {
-        if (tokens?.access_token || tokens?.id_token) {
+        const hasTokens =
+          tokens?.access_token ||
+          tokens?.id_token ||
+          tokens?.tokens?.access_token ||
+          tokens?.tokens?.id_token
+        if (hasTokens) {
           processedRef.current = true
           setBusy(true)
           setBusyMessage('Processing authentication...')

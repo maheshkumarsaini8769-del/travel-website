@@ -46,23 +46,76 @@ export function hasPermission(admin: Pick<AdminDoc, 'role' | 'permissions'>, per
 // Session tokens — signed, expire after 7 days
 // ---------------------------------------------------------------------------
 
+import ZenuxOAuth from 'zenuxs-oauth'
+
 function sign(value: string): string {
   return createHmac('sha256', process.env.ADMIN_SECRET ?? 'sunsky-dev-secret').update(value).digest('hex')
 }
 
-export function createAdminToken(adminId: string): string {
+export interface AdminMeta {
+  email?: string
+  name?: string
+  role?: AdminRole
+  permissions?: string[]
+}
+
+export function createAdminToken(adminId: string, meta?: AdminMeta): string {
   const expiry = Date.now() + 1000 * 60 * 60 * 24 * SESSION_DAYS
-  return `${expiry}.${adminId}.${sign(`${expiry}.${adminId}`)}`
+  const payload = {
+    adminId,
+    email: meta?.email || '',
+    name: meta?.name || '',
+    role: meta?.role || 'superadmin',
+    permissions: meta?.permissions || ['*'],
+    expiry,
+  }
+  const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url')
+  const mac = sign(payloadB64)
+  return `v2.${payloadB64}.${mac}`
 }
 
 export interface AdminSession {
   adminId: string
   expiry: number
+  resolved?: ResolvedAdmin
 }
 
 export function getAdminSession(): AdminSession | null {
   const token = cookies().get(ADMIN_COOKIE)?.value
   if (!token) return null
+
+  // Support v2 self-contained token
+  if (token.startsWith('v2.')) {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+    const [, payloadB64, mac] = parts
+    if (!payloadB64 || !mac) return null
+    const expected = sign(payloadB64)
+    const a = Buffer.from(mac)
+    const b = Buffer.from(expected)
+    if (a.length !== b.length || !timingSafeEqual(a, b)) return null
+
+    try {
+      const json = Buffer.from(payloadB64, 'base64url').toString('utf8')
+      const p = JSON.parse(json)
+      const exp = Number(p.expiry)
+      if (!Number.isFinite(exp) || exp < Date.now()) return null
+      const resolved: ResolvedAdmin = {
+        id: p.adminId,
+        email: p.email || 'admin@sunskytourism.in',
+        username: p.email || 'admin',
+        name: p.name || 'Admin',
+        role: p.role || 'superadmin',
+        permissions: p.permissions || ['*'],
+        fromDb: p.adminId !== ENV_ADMIN_ID,
+      }
+      return { adminId: p.adminId, expiry: exp, resolved }
+    } catch {
+      return null
+    }
+  }
+
+  // Support legacy expiry.adminId.mac token
   const parts = token.split('.')
   if (parts.length !== 3) return null
   const [expiry, adminId, mac] = parts
@@ -138,11 +191,117 @@ export function resolveEnvAdmin(): ResolvedAdmin {
   }
 }
 
+// Validate Zenuxs OAuth tokens from headers or cookies using inbuilt functions
+export async function resolveAdminFromOAuth(): Promise<ResolvedAdmin | null> {
+  try {
+    const h = headers()
+    const c = cookies()
+
+    let accessToken = ''
+    const authHeader = h.get('authorization')
+    if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+      accessToken = authHeader.slice(7).trim()
+    }
+    if (!accessToken) {
+      accessToken = c.get('zenux_access_token')?.value || c.get('access_token')?.value || ''
+    }
+    const idToken = c.get('zenux_id_token')?.value || c.get('id_token')?.value || ''
+
+    if (!accessToken && !idToken) return null
+
+    const oauth = new ZenuxOAuth({
+      clientId: process.env.NEXT_PUBLIC_ZENUX_CLIENT_ID || '1fe396337ca4c424',
+    })
+
+    let email = ''
+    let name = ''
+
+    // 1. Inbuilt decodeJWT() on idToken if available
+    if (idToken) {
+      try {
+        const payload = oauth.decodeJWT(idToken)
+        if (payload?.email) {
+          email = String(payload.email).trim().toLowerCase()
+        }
+        if (payload?.name || payload?.nickname || payload?.preferred_username) {
+          name = String(payload.name || payload.nickname || payload.preferred_username).trim()
+        }
+      } catch {}
+    }
+
+    // 2. Inbuilt decodeJWT() on accessToken if available
+    if (!email && accessToken) {
+      try {
+        const payload = oauth.decodeJWT(accessToken)
+        if (payload?.email) {
+          email = String(payload.email).trim().toLowerCase()
+        }
+        if (payload?.name || payload?.nickname || payload?.preferred_username) {
+          name = String(payload.name || payload.nickname || payload.preferred_username).trim()
+        }
+      } catch {}
+    }
+
+    // 3. Inbuilt getUserInfo() if email not extracted from decodeJWT
+    if (!email && accessToken) {
+      try {
+        ;(oauth as any).setTokens({ access_token: accessToken, id_token: idToken })
+        const userInfo = await oauth.getUserInfo()
+        if (userInfo?.email) {
+          email = String(userInfo.email).trim().toLowerCase()
+        }
+        if (userInfo?.name || userInfo?.nickname) {
+          name = String(userInfo.name || userInfo.nickname).trim()
+        }
+      } catch {}
+    }
+
+    if (!email) return null
+
+    // Check DB for existing admin or auto-provision
+    const existing = await findAdminByEmail(email)
+    if (existing) {
+      if (!existing.active) return null
+      return {
+        id: existing._id,
+        email: existing.email,
+        username: existing.username ?? existing.email,
+        name: existing.name,
+        role: existing.role,
+        permissions: existing.permissions,
+        fromDb: true,
+      }
+    }
+
+    const createdId = await createAdminFromEmail(email, name || email.split('@')[0])
+    return {
+      id: createdId ?? ENV_ADMIN_ID,
+      email,
+      username: email,
+      name: name || email.split('@')[0],
+      role: 'superadmin',
+      permissions: ['*'],
+      fromDb: Boolean(createdId),
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function getCurrentAdmin(): Promise<ResolvedAdmin | null> {
   const session = getAdminSession()
-  if (!session) return null
-  if (session.adminId === ENV_ADMIN_ID) return resolveEnvAdmin()
-  return resolveAdminFromDb(session.adminId)
+  if (session) {
+    if (session.resolved) return session.resolved
+    if (session.adminId === ENV_ADMIN_ID) return resolveEnvAdmin()
+    const dbAdmin = await resolveAdminFromDb(session.adminId)
+    if (dbAdmin) return dbAdmin
+  }
+
+  // Fallback to validating Zenuxs OAuth token directly via inbuilt functions
+  const oauthAdmin = await resolveAdminFromOAuth()
+  if (oauthAdmin) return oauthAdmin
+
+  return null
 }
 
 export async function findAdminByEmail(email: string): Promise<AdminDoc | null> {
@@ -202,19 +361,28 @@ export function getAdminCookieOptions(): {
   }
 }
 
-export function setAdminSessionCookie(adminId: string): void {
-  cookies().set(ADMIN_COOKIE, createAdminToken(adminId), getAdminCookieOptions())
+export function setAdminSessionCookie(adminId: string, meta?: AdminMeta): void {
+  try {
+    cookies().set(ADMIN_COOKIE, createAdminToken(adminId, meta), getAdminCookieOptions())
+  } catch {}
 }
 
 export function clearAdminSessionCookie(): void {
   clearAdminSessionCache()
-  cookies().set(ADMIN_COOKIE, '', {
+  const opts = {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     secure: isSecureRequest(),
     maxAge: 0,
     path: '/',
-  })
+  }
+  try {
+    cookies().set(ADMIN_COOKIE, '', opts)
+    cookies().set('zenux_access_token', '', opts)
+    cookies().set('zenux_id_token', '', opts)
+    cookies().set('access_token', '', opts)
+    cookies().set('id_token', '', opts)
+  } catch {}
 }
 
 function isSecureRequest(): boolean {

@@ -123,8 +123,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const token = createAdminToken(adminId)
-    setAdminSessionCookie(adminId)
+    const authHeader = req.headers.get('authorization')
+    const headerToken = authHeader && authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : ''
+    const effectiveAccessToken = accessToken || headerToken
+
+    const adminMeta = {
+      email,
+      name: name || email.split('@')[0],
+      role: adminRole as any,
+      permissions: adminPermissions,
+    }
+
+    const token = createAdminToken(adminId, adminMeta)
+    setAdminSessionCookie(adminId, adminMeta)
     void audit(email, 'oauth-login', 'auth')
 
     const cookieOptions = getAdminCookieOptions()
@@ -138,6 +149,12 @@ export async function POST(req: NextRequest) {
       },
     })
     res.cookies.set(ADMIN_COOKIE, token, cookieOptions)
+    if (effectiveAccessToken) {
+      res.cookies.set('zenux_access_token', effectiveAccessToken, cookieOptions)
+    }
+    if (idToken) {
+      res.cookies.set('zenux_id_token', idToken, cookieOptions)
+    }
     return res
   } catch (err: any) {
     console.error('oauth login route error:', err)

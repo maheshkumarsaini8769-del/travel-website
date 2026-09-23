@@ -67,13 +67,27 @@ export async function GET(req: NextRequest) {
       adminId = createdId ?? ENV_ADMIN_ID
     }
 
-    const token = createAdminToken(adminId)
-    setAdminSessionCookie(adminId)
+    const adminMeta = {
+      email,
+      name: name || email.split('@')[0],
+      role: 'superadmin' as const,
+      permissions: ['*'],
+    }
+
+    const token = createAdminToken(adminId, adminMeta)
+    setAdminSessionCookie(adminId, adminMeta)
     void audit(email, 'oauth-login-redirect', 'auth')
 
     const redirectUrl = new URL('/admin', req.nextUrl)
     const res = NextResponse.redirect(redirectUrl, 302)
-    res.cookies.set(ADMIN_COOKIE, token, getAdminCookieOptions())
+    const cookieOptions = getAdminCookieOptions()
+    res.cookies.set(ADMIN_COOKIE, token, cookieOptions)
+    if (accessToken) {
+      res.cookies.set('zenux_access_token', accessToken, cookieOptions)
+    }
+    if (idToken) {
+      res.cookies.set('zenux_id_token', idToken, cookieOptions)
+    }
     return res
   } catch (err: any) {
     console.error('complete-login error:', err)

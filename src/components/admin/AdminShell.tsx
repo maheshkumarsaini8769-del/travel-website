@@ -4,6 +4,18 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 
+function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('zenux_oauth_tokens') || sessionStorage.getItem('zenux_oauth_tokens')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return parsed?.access_token || parsed?.tokens?.access_token || parsed?.id_token || null
+    }
+  } catch {}
+  return null
+}
+
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
@@ -21,24 +33,67 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     let active = true
     setChecking(true)
 
-    fetch('/api/admin/me', { credentials: 'same-origin', cache: 'no-store' })
-      .then((r) => {
+    async function checkAuth() {
+      try {
+        const token = getStoredToken()
+        const headers: Record<string, string> = {}
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+
+        const r = await fetch('/api/admin/me', {
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers,
+        })
+
         if (!active) return
+
         if (r.ok) {
           setOk(true)
           setChecking(false)
-        } else {
+          return
+        }
+
+        // If 401 but we have an OAuth token, attempt one-time session sync
+        if (token && r.status === 401) {
+          try {
+            const syncRes = await fetch('/api/auth/login', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ accessToken: token, oauth: true }),
+            })
+            if (syncRes.ok) {
+              const retryRes = await fetch('/api/admin/me', {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers,
+              })
+              if (retryRes.ok && active) {
+                setOk(true)
+                setChecking(false)
+                return
+              }
+            }
+          } catch {}
+        }
+
+        if (active) {
           setOk(false)
           setChecking(false)
           router.replace('/admin/login')
         }
-      })
-      .catch(() => {
-        if (!active) return
-        setOk(false)
-        setChecking(false)
-        router.replace('/admin/login')
-      })
+      } catch {
+        if (active) {
+          setOk(false)
+          setChecking(false)
+          router.replace('/admin/login')
+        }
+      }
+    }
+
+    checkAuth()
 
     return () => {
       active = false
